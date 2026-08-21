@@ -218,9 +218,8 @@ h1, h2, h3, h4 {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  background: rgba(250, 247, 241, 0.94);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
 }
 
 .site-header .container {
