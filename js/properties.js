@@ -15,7 +15,7 @@ function renderPropertyCard(p) {
     <a href="propiedad.html?id=${p.id}" class="property-media">
       <span class="property-badge ${badgeClass}">${operationLabel(p.operation)}</span>
       <button class="property-fav" type="button" title="Guardar" aria-label="Guardar propiedad" onclick="event.preventDefault()">&#9825;</button>
-      ${placeholderPhotoSVG(p.seed, typeLabel(p.type))}
+      ${propertyMediaHTML(p, typeLabel(p.type))}
     </a>
     <div class="property-body">
       <div class="property-price">${formatPrice(p)}</div>
@@ -35,7 +35,9 @@ function renderFeatured() {
   const el = document.getElementById("featured-grid");
   if (!el) return;
   const featured = PROPERTIES.filter((p) => p.featured).slice(0, 6);
-  el.innerHTML = featured.map(renderPropertyCard).join("");
+  el.innerHTML = featured.length
+    ? featured.map(renderPropertyCard).join("")
+    : `<p style="color:var(--color-text-light);">Todavía no hay propiedades destacadas cargadas.</p>`;
 }
 
 function applyFilters(params) {
@@ -148,7 +150,8 @@ function initQuickSearch() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await fetchProperties();
   renderFeatured();
   initQuickSearch();
   initPropertiesPage();

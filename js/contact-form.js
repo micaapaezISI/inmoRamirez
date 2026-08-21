@@ -1,11 +1,9 @@
 /* =====================================================================
    INMOBILIARIA RAMIREZ — formulario de contacto
    ---------------------------------------------------------------------
-   Como todavía no hay backend, el formulario arma un mensaje y lo abre
-   directamente en WhatsApp con los datos cargados. El día que quieran
-   recibir los mensajes también por email, se puede sumar un servicio
-   de envío de formularios (Formspree, EmailJS, un backend propio, etc.)
-   sin tener que tocar el diseño.
+   El mensaje se guarda en la tabla "contact_messages" de Supabase y,
+   además, se abre WhatsApp con los datos cargados para el contacto
+   inmediato.
    ===================================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -14,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const feedback = document.getElementById("contact-feedback");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = new FormData(form);
     const name = data.get("name") || "";
@@ -22,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = data.get("email") || "";
     const reason = data.get("reason") || "";
     const message = data.get("message") || "";
+
+    const { error } = await supabaseClient.from("contact_messages").insert({ name, phone, email, reason, message });
+    if (error) console.error("No se pudo guardar el mensaje de contacto:", error);
 
     const text = encodeURIComponent(
       `Hola, soy ${name}.\n` +

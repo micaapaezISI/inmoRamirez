@@ -104,14 +104,16 @@ function createPhotoManager(rootEl) {
 
   function deleteImage(id) {
     const img = images.find((i) => i.id === id);
-    if (img) URL.revokeObjectURL(img.url);
+    if (img && img.url.startsWith("blob:")) URL.revokeObjectURL(img.url);
     images = images.filter((i) => i.id !== id);
     render();
   }
 
   function deleteSelected() {
     const toDelete = images.filter((i) => i.selected);
-    toDelete.forEach((i) => URL.revokeObjectURL(i.url));
+    toDelete.forEach((i) => {
+      if (i.url.startsWith("blob:")) URL.revokeObjectURL(i.url);
+    });
     images = images.filter((i) => !i.selected);
     render();
   }
@@ -286,8 +288,14 @@ function createPhotoManager(rootEl) {
   return {
     getImages: () => images.map((i) => ({ name: i.name, url: i.url, fromZip: i.fromZip })),
     getCount: () => images.length,
+    setImages: (list) => {
+      images = (list || []).map((it) => ({ id: nextId++, url: it.url, name: it.name || "foto", fromZip: false, selected: false }));
+      render();
+    },
     reset: () => {
-      images.forEach((i) => URL.revokeObjectURL(i.url));
+      images.forEach((i) => {
+        if (i.url.startsWith("blob:")) URL.revokeObjectURL(i.url);
+      });
       images = [];
       render();
     },

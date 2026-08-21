@@ -546,9 +546,12 @@ h1, h2, h3, h4 {
   overflow: hidden;
 }
 
-.property-media svg {
+.property-media svg,
+.property-media img {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .property-badge {
@@ -1331,6 +1334,16 @@ h1, h2, h3, h4 {
 .detail-gallery-side > div {
   border-radius: var(--radius-md);
   overflow: hidden;
+}
+
+.detail-gallery-main svg,
+.detail-gallery-main img,
+.detail-gallery-side svg,
+.detail-gallery-side img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .detail-layout {

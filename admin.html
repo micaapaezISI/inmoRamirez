@@ -45,13 +45,40 @@
 
 <section class="section" style="padding-top:40px;">
   <div class="container">
-    <div class="admin-banner">
-      <span style="font-size:1.3rem;">⚠️</span>
-      <div>
-        <strong>Esta es una versión demo, sin backend todavía.</strong>
-        Este formulario funciona en el navegador para mostrar cómo va a funcionar la carga de propiedades (incluida la carga de fotos por selección múltiple o por .zip). Por ahora, al guardar no se publica nada en el sitio ni se sube a ningún servidor — para eso hace falta conectar un backend o un panel/CMS real, que es un paso siguiente natural una vez que este diseño esté aprobado.
-      </div>
+    <div id="admin-login-wrap" class="admin-card" style="max-width:420px; margin:0 auto;">
+      <h2>Ingresar</h2>
+      <p class="admin-card-desc">Acceso solo para el equipo de Inmobiliaria Ramirez.</p>
+      <form id="admin-login-form">
+        <div class="admin-form-grid">
+          <div class="field field-full">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" name="email" required autocomplete="username">
+          </div>
+          <div class="field field-full">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" name="password" required autocomplete="current-password">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px;">Ingresar</button>
+        <p id="admin-login-error" style="display:none; color:var(--color-danger); margin-top:12px;"></p>
+      </form>
     </div>
+
+    <div id="admin-panel" style="display:none;">
+      <div class="admin-banner">
+        <span style="font-size:1.3rem;">🔒</span>
+        <div>
+          <strong>Panel conectado a Supabase.</strong>
+          Lo que cargues acá se guarda de verdad en la base de datos y ya se muestra en el sitio público.
+        </div>
+        <button type="button" id="admin-logout" class="btn btn-sm btn-dark" style="margin-left:auto;">Cerrar sesión</button>
+      </div>
+
+      <div class="admin-card">
+        <h2>Propiedades cargadas</h2>
+        <p class="admin-card-desc">Editá o borrá una propiedad existente.</p>
+        <div id="admin-properties-list"></div>
+      </div>
 
     <div class="admin-shell">
       <aside class="admin-sidebar">
@@ -186,10 +213,12 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="padding:15px 34px;">Guardar propiedad (demo)</button>
+        <button type="submit" class="btn btn-primary" id="admin-submit-btn" style="padding:15px 34px;">Guardar propiedad</button>
+        <button type="button" id="admin-cancel-edit" class="btn btn-dark" style="padding:15px 26px; display:none;">Cancelar edición</button>
 
         <div id="admin-result" style="display:none; margin-top:26px;"></div>
       </form>
+    </div>
     </div>
   </div>
 </section>
@@ -240,6 +269,9 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/properties-data.js"></script>
 <script src="js/vendor/zip-lite.js"></script>
 <script src="js/photo-manager.js"></script>
 <script src="js/admin.js"></script>

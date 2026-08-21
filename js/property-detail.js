@@ -7,22 +7,34 @@
 
 const WHATSAPP_NUMBER = "5493885123456"; // [WHATSAPP] — número de ejemplo, actualizar por el real
 
-function initPropertyDetail() {
+async function initPropertyDetail() {
   const root = document.getElementById("property-detail-root");
   if (!root) return;
 
   const id = parseInt(new URLSearchParams(window.location.search).get("id"), 10);
+  await fetchProperties();
   const property = PROPERTIES.find((p) => p.id === id) || PROPERTIES[0];
+  if (!property) {
+    root.innerHTML = `<p style="padding:60px 0; text-align:center; color:var(--color-text-light);">No se encontró la propiedad.</p>`;
+    return;
+  }
 
   document.title = `${property.title} · Inmobiliaria Ramirez`;
 
   document.getElementById("breadcrumb-title").textContent = property.title;
 
+  const images = property.images && property.images.length ? property.images : [];
+  const mainImg = images[0]
+    ? `<img src="${images[0]}" alt="${property.title}">`
+    : placeholderPhotoSVG(property.id % 6, typeLabel(property.type));
+  const sideImg1 = images[1] ? `<img src="${images[1]}" alt="${property.title}">` : placeholderPhotoSVG((property.id + 1) % 6, "Interior");
+  const sideImg2 = images[2] ? `<img src="${images[2]}" alt="${property.title}">` : placeholderPhotoSVG((property.id + 2) % 6, "Exterior");
+
   document.getElementById("detail-gallery").innerHTML = `
-    <div class="detail-gallery-main">${placeholderPhotoSVG(property.seed, typeLabel(property.type))}</div>
+    <div class="detail-gallery-main">${mainImg}</div>
     <div class="detail-gallery-side">
-      <div>${placeholderPhotoSVG(property.seed + 1, "Interior")}</div>
-      <div>${placeholderPhotoSVG(property.seed + 2, "Exterior")}</div>
+      <div>${sideImg1}</div>
+      <div>${sideImg2}</div>
     </div>
   `;
 
