@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel admin — Cargar propiedad — Inmobiliaria Ramirez</title>
+<meta name="description" content="Panel interno para cargar una nueva propiedad, con carga de fotos por selección múltiple o .zip.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%23b98a68%27/%3E%3Ctext%20x%3D%2732%27%20y%3D%2743%27%20font-family%3D%27Poppins%2CArial%2Csans-serif%27%20font-size%3D%2726%27%20font-weight%3D%27700%27%20fill%3D%27%234a3c30%27%20text-anchor%3D%27middle%27%3EIR%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">IR</span>
+      <span class="brand-text">Inmobiliaria Ramirez<small>La Quiaca · Jujuy</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html" data-page="index.html">Inicio</a>
+      <a href="propiedades.html" data-page="propiedades.html">Propiedades</a>
+      <a href="nosotros.html" data-page="nosotros.html">Nosotros</a>
+      <a href="turismo.html" data-page="turismo.html">Turismo</a>
+      <a href="contacto.html" data-page="contacto.html">Contacto</a>
+      <a href="admin.html" data-page="admin.html" class="nav-admin">🔒 Panel admin</a>
+    </nav>
+    <div class="header-actions">
+      <a href="https://wa.me/5493885123456" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">💬 WhatsApp</a>
+      <button class="nav-toggle" aria-label="Abrir menú" type="button"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== PAGE HERO ===================== -->
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Uso interno</span>
+    <h1>Cargar propiedad</h1>
+    <p>Panel de administración para publicar una propiedad nueva, con sus fotos.</p>
+    <div class="breadcrumb"><a href="index.html">Inicio</a> / Panel admin</div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:40px;">
+  <div class="container">
+    <div class="admin-banner">
+      <span style="font-size:1.3rem;">⚠️</span>
+      <div>
+        <strong>Esta es una versión demo, sin backend todavía.</strong>
+        Este formulario funciona en el navegador para mostrar cómo va a funcionar la carga de propiedades (incluida la carga de fotos por selección múltiple o por .zip). Por ahora, al guardar no se publica nada en el sitio ni se sube a ningún servidor — para eso hace falta conectar un backend o un panel/CMS real, que es un paso siguiente natural una vez que este diseño esté aprobado.
+      </div>
+    </div>
+
+    <div class="admin-shell">
+      <aside class="admin-sidebar">
+        <h4>Secciones</h4>
+        <ul>
+          <li><a href="#datos-generales">Datos generales</a></li>
+          <li><a href="#ubicacion-precio">Ubicación y precio</a></li>
+          <li><a href="#descripcion">Descripción</a></li>
+          <li><a href="#fotos">Fotos</a></li>
+        </ul>
+      </aside>
+
+      <form id="admin-property-form">
+        <div class="admin-card" id="datos-generales">
+          <h2>Datos generales</h2>
+          <p class="admin-card-desc">Información básica de la propiedad.</p>
+          <div class="admin-form-grid">
+            <div class="field field-full">
+              <label for="p-title">Título del aviso</label>
+              <input type="text" id="p-title" name="title" placeholder="Ej: Casa 3 dormitorios con patio" required>
+            </div>
+            <div class="field">
+              <label for="p-operation">Operación</label>
+              <select id="p-operation" name="operation" required>
+                <option value="venta">Venta</option>
+                <option value="alquiler">Alquiler</option>
+                <option value="temporal">Alquiler temporario</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-type">Tipo de propiedad</label>
+              <select id="p-type" name="type" required>
+                <option value="casa">Casa</option>
+                <option value="departamento">Departamento</option>
+                <option value="terreno">Terreno</option>
+                <option value="local">Local comercial</option>
+                <option value="finca">Finca</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-bedrooms">Dormitorios</label>
+              <input type="number" id="p-bedrooms" name="bedrooms" min="0" step="1" value="0">
+            </div>
+            <div class="field">
+              <label for="p-bathrooms">Baños</label>
+              <input type="number" id="p-bathrooms" name="bathrooms" min="0" step="1" value="0">
+            </div>
+            <div class="field">
+              <label for="p-area">Superficie (m²)</label>
+              <input type="number" id="p-area" name="area" min="0" step="1" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card" id="ubicacion-precio">
+          <h2>Ubicación y precio</h2>
+          <p class="admin-card-desc">Dónde está y cuánto sale.</p>
+          <div class="admin-form-grid">
+            <div class="field">
+              <label for="p-zone">Zona / barrio</label>
+              <select id="p-zone" name="zone">
+                <option value="Centro">Centro</option>
+                <option value="Barrio Cruce">Barrio Cruce</option>
+                <option value="Barrio Belgrano">Barrio Belgrano</option>
+                <option value="Barrio Ferroviario">Barrio Ferroviario</option>
+                <option value="Zona Puna / Yavi">Zona Puna / Yavi</option>
+                <option value="Zona rural / Puna">Zona rural / Puna</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-address">Dirección (referencia)</label>
+              <input type="text" id="p-address" name="address" placeholder="Ej: a metros de Av. España, Centro">
+            </div>
+            <div class="field">
+              <label for="p-currency">Moneda</label>
+              <select id="p-currency" name="currency">
+                <option value="USD">USD</option>
+                <option value="ARS">ARS ($)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="p-price">Precio</label>
+              <input type="number" id="p-price" name="price" min="0" step="1" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card" id="descripcion">
+          <h2>Descripción y características</h2>
+          <p class="admin-card-desc">Contá los detalles que ayudan a decidir.</p>
+          <div class="admin-form-grid">
+            <div class="field field-full">
+              <label for="p-description">Descripción</label>
+              <textarea id="p-description" name="description" rows="4" placeholder="Describí la propiedad..."></textarea>
+            </div>
+            <div class="field field-full">
+              <label for="p-amenities">Características (separadas por coma)</label>
+              <input type="text" id="p-amenities" name="amenities" placeholder="Ej: Garage, Patio con parrilla, Calefacción a leña">
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card" id="fotos">
+          <h2>Fotos de la propiedad</h2>
+          <p class="admin-card-desc">Subí las fotos sueltas o comprimidas en un .zip — no hay límite de cantidad. Podés reordenarlas arrastrando, elegir la portada (imagen 1) y eliminar una o varias a la vez.</p>
+
+          <div class="photo-manager" data-pm-root>
+            <div class="pm-dropzone" data-pm-dropzone tabindex="0" role="button" aria-label="Elegir fotos o un archivo zip">
+              <input type="file" data-pm-file-input accept="image/*,.zip,application/zip" multiple hidden>
+              <div class="pm-dropzone-inner">
+                <span class="pm-dropzone-ico">📷</span>
+                <strong>Arrastrá tus fotos acá o hacé clic para elegir</strong>
+                <span>Podés seleccionar varias imágenes a la vez, o subir un .zip con todas las fotos de la propiedad. Sin límite de cantidad.</span>
+                <button type="button" class="btn btn-dark btn-sm" data-pm-browse-btn>Elegir archivos</button>
+              </div>
+            </div>
+
+            <div class="pm-toolbar" data-pm-toolbar style="display:none;">
+              <span data-pm-count>0 fotos cargadas</span>
+              <div class="pm-bulk-actions" data-pm-bulk-actions style="display:none;">
+                <span data-pm-selected-count>0 seleccionadas</span>
+                <button type="button" class="btn btn-sm" data-pm-delete-selected style="background:var(--color-danger); color:#fff;">Eliminar seleccionadas</button>
+                <button type="button" class="btn btn-sm btn-dark" data-pm-clear-selection>Cancelar selección</button>
+              </div>
+            </div>
+
+            <p class="pm-hint" data-pm-hint style="display:none;">⭐ La primera foto es la <strong>portada</strong>. Arrastrá las miniaturas para reordenar, usá ◀ ▶ para moverlas, o ⭐ para hacer portada a otra foto.</p>
+
+            <div class="pm-grid" data-pm-grid></div>
+
+            <p data-pm-status role="status" aria-live="polite" style="display:none; font-size:0.85rem;"></p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding:15px 34px;">Guardar propiedad (demo)</button>
+
+        <div id="admin-result" style="display:none; margin-top:26px;"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="brand"><span class="brand-mark">IR</span><span class="brand-text">Inmobiliaria Ramirez</span></div>
+        <p>Compra, venta y alquiler de propiedades en La Quiaca, Jujuy. Atención cercana y de confianza.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Facebook" target="_blank" rel="noopener">f</a>
+          <a href="#" aria-label="Instagram" target="_blank" rel="noopener">ig</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navegación</h4>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="propiedades.html">Propiedades</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="turismo.html">Turismo</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Propiedades</h4>
+        <ul>
+          <li><a href="propiedades.html?operation=venta">En venta</a></li>
+          <li><a href="propiedades.html?operation=alquiler">En alquiler</a></li>
+          <li><a href="propiedades.html?operation=temporal">Alquiler temporario</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <address>
+          <span>📍 [DIRECCIÓN], La Quiaca, Jujuy</span>
+          <a href="tel:+5493885123456">📞 [TELÉFONO DE EJEMPLO]</a>
+          <a href="mailto:info@inmobiliariaramirez.com.ar">✉️ [EMAIL DE EJEMPLO]</a>
+        </address>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Inmobiliaria Ramirez — La Quiaca, Jujuy. Todos los derechos reservados.</span>
+      <span class="footer-credit">Diseñada por <a href="https://commitsystem.com.ar" target="_blank" rel="noopener">Commit System</a> · commitsystem.com.ar · 3813528234 / 3815350991</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/vendor/zip-lite.js"></script>
+<script src="js/photo-manager.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacto — Inmobiliaria Ramirez</title>
+<meta name="description" content="Contactate con Inmobiliaria Ramirez en La Quiaca, Jujuy. Consultas por WhatsApp, teléfono o formulario.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%23b98a68%27/%3E%3Ctext%20x%3D%2732%27%20y%3D%2743%27%20font-family%3D%27Poppins%2CArial%2Csans-serif%27%20font-size%3D%2726%27%20font-weight%3D%27700%27%20fill%3D%27%234a3c30%27%20text-anchor%3D%27middle%27%3EIR%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">IR</span>
+      <span class="brand-text">Inmobiliaria Ramirez<small>La Quiaca · Jujuy</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html" data-page="index.html">Inicio</a>
+      <a href="propiedades.html" data-page="propiedades.html">Propiedades</a>
+      <a href="nosotros.html" data-page="nosotros.html">Nosotros</a>
+      <a href="turismo.html" data-page="turismo.html">Turismo</a>
+      <a href="contacto.html" data-page="contacto.html">Contacto</a>
+      <a href="admin.html" data-page="admin.html" class="nav-admin">🔒 Panel admin</a>
+    </nav>
+    <div class="header-actions">
+      <a href="https://wa.me/5493885123456" target="_blank" rel="noopener" class="btn btn-whatsapp btn-sm">💬 WhatsApp</a>
+      <button class="nav-toggle" aria-label="Abrir menú" type="button"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== PAGE HERO ===================== -->
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Contacto</span>
+    <h1>Hablemos</h1>
+    <p>Escribinos por el medio que prefieras. Te respondemos a la brevedad.</p>
+    <div class="breadcrumb"><a href="index.html">Inicio</a> / Contacto</div>
+  </div>
+</section>
+
+<!-- ===================== FORMULARIO + INFO ===================== -->
+<section class="section">
+  <div class="container">
+    <div class="contact-grid">
+      <form class="contact-form" id="contact-form">
+        <h2 style="font-size:1.3rem;">Envianos tu consulta</h2>
+        <div class="form-row">
+          <div class="field">
+            <label for="c-name">Nombre y apellido</label>
+            <input type="text" id="c-name" name="name" required>
+          </div>
+          <div class="field">
+            <label for="c-phone">Teléfono</label>
+            <input type="tel" id="c-phone" name="phone" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-email">Email</label>
+          <input type="email" id="c-email" name="email">
+        </div>
+        <div class="field">
+          <label for="c-reason">Motivo de la consulta</label>
+          <select id="c-reason" name="reason">
+            <option value="Quiero comprar">Quiero comprar una propiedad</option>
+            <option value="Quiero alquilar">Quiero alquilar una propiedad</option>
+            <option value="Quiero vender">Quiero vender mi propiedad</option>
+            <option value="Quiero tasar">Quiero tasar mi propiedad</option>
+            <option value="Alquiler temporario">Alquiler temporario</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="c-message">Mensaje</label>
+          <textarea id="c-message" name="message" rows="5" placeholder="Contanos qué estás buscando..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-whatsapp btn-block">💬 Enviar consulta por WhatsApp</button>
+        <p id="contact-feedback" style="display:none; color: var(--color-whatsapp-dark); font-size: 0.9rem; font-weight: 600;"></p>
+        <p style="font-size:0.8rem; color: var(--color-text-light);">Al enviar, se abre WhatsApp con tu mensaje ya redactado para que lo confirmes y envíes.</p>
+      </form>
+
+      <div>
+        <div class="contact-info-list">
+          <div class="contact-info-item">
+            <div class="contact-info-ico">📍</div>
+            <div><strong>Oficina</strong><span>[DIRECCIÓN], La Quiaca, Jujuy</span></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-ico">📞</div>
+            <div><strong>Teléfono / WhatsApp</strong><a href="tel:+5493885123456">[TELÉFONO DE EJEMPLO]</a></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-ico">✉️</div>
+            <div><strong>Email</strong><a href="mailto:info@inmobiliariaramirez.com.ar">[EMAIL DE EJEMPLO]</a></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-ico">🕘</div>
+            <div><strong>Horario de atención</strong><span>Lunes a viernes de 9 a 18 hs · Sábados de 9 a 13 hs [EJEMPLO]</span></div>
+          </div>
+        </div>
+
+        <div class="social-row" style="margin-top:20px;">
+          <a href="#" aria-label="Facebook" target="_blank" rel="noopener">f</a>
+          <a href="#" aria-label="Instagram" target="_blank" rel="noopener">ig</a>
+        </div>
+
+        <div class="map-frame" style="margin-top:20px;">
+          <iframe src="https://www.google.com/maps?q=La+Quiaca,+Jujuy,+Argentina&output=embed" loading="lazy" allowfullscreen title="Mapa La Quiaca, Jujuy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="brand"><span class="brand-mark">IR</span><span class="brand-text">Inmobiliaria Ramirez</span></div>
+        <p>Compra, venta y alquiler de propiedades en La Quiaca, Jujuy. Atención cercana y de confianza.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Facebook" target="_blank" rel="noopener">f</a>
+          <a href="#" aria-label="Instagram" target="_blank" rel="noopener">ig</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navegación</h4>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="propiedades.html">Propiedades</a></li>
+          <li><a href="nosotros.html">Nosotros</a></li>
+          <li><a href="turismo.html">Turismo</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Propiedades</h4>
+        <ul>
+          <li><a href="propiedades.html?operation=venta">En venta</a></li>
+          <li><a href="propiedades.html?operation=alquiler">En alquiler</a></li>
+          <li><a href="propiedades.html?operation=temporal">Alquiler temporario</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <address>
+          <span>📍 [DIRECCIÓN], La Quiaca, Jujuy</span>
+          <a href="tel:+5493885123456">📞 [TELÉFONO DE EJEMPLO]</a>
+          <a href="mailto:info@inmobiliariaramirez.com.ar">✉️ [EMAIL DE EJEMPLO]</a>
+        </address>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Inmobiliaria Ramirez — La Quiaca, Jujuy. Todos los derechos reservados.</span>
+      <span class="footer-credit">Diseñada por <a href="https://commitsystem.com.ar" target="_blank" rel="noopener">Commit System</a> · commitsystem.com.ar · 3813528234 / 3815350991</span>
+    </div>
+  </div>
+</footer>
+
+<a class="whatsapp-float" href="https://wa.me/5493885123456" target="_blank" rel="noopener" aria-label="Chatear por WhatsApp">💬</a>
+
+<script src="js/contact-form.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
