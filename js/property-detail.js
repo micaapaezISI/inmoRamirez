@@ -13,9 +13,9 @@ async function initPropertyDetail() {
 
   const id = parseInt(new URLSearchParams(window.location.search).get("id"), 10);
   await fetchProperties();
-  const property = PROPERTIES.find((p) => p.id === id) || PROPERTIES[0];
+  const property = Number.isNaN(id) ? PROPERTIES[0] : PROPERTIES.find((p) => p.id === id);
   if (!property) {
-    root.innerHTML = `<p style="padding:60px 0; text-align:center; color:var(--color-text-light);">No se encontró la propiedad.</p>`;
+    root.innerHTML = `<p style="padding:60px 0; text-align:center; color:var(--color-text-light);">Esta propiedad ya no está disponible. <a href="propiedades.html">Ver todas las propiedades</a>.</p>`;
     return;
   }
 

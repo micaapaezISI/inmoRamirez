@@ -13,6 +13,7 @@ async function fetchProperties() {
   const { data, error } = await supabaseClient
     .from("properties")
     .select("*")
+    .eq("active", true)
     .order("created_at", { ascending: false });
 
   if (error) {

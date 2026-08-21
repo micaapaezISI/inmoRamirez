@@ -37,8 +37,8 @@
 <section class="page-hero">
   <div class="container">
     <span class="eyebrow">Uso interno</span>
-    <h1>Cargar propiedad</h1>
-    <p>Panel de administración para publicar una propiedad nueva, con sus fotos.</p>
+    <h1>Panel de administración</h1>
+    <p>Gestioná las propiedades y las consultas que llegan por la web, todo desde acá.</p>
     <div class="breadcrumb"><a href="index.html">Inicio</a> / Panel admin</div>
   </div>
 </section>
@@ -47,7 +47,7 @@
   <div class="container">
     <div id="admin-login-wrap" class="admin-card" style="max-width:420px; margin:0 auto;">
       <h2>Ingresar</h2>
-      <p class="admin-card-desc">Acceso solo para el equipo de Inmobiliaria Ramirez.</p>
+      <p class="admin-card-desc">Acceso solo para el equipo de Inmobiliaria Ramirez. Pedí el usuario y la contraseña si todavía no los tenés.</p>
       <form id="admin-login-form">
         <div class="admin-form-grid">
           <div class="field field-full">
@@ -68,33 +68,64 @@
       <div class="admin-banner">
         <span style="font-size:1.3rem;">🔒</span>
         <div>
-          <strong>Panel conectado a Supabase.</strong>
-          Lo que cargues acá se guarda de verdad en la base de datos y ya se muestra en el sitio público.
+          <strong>Estás dentro del panel.</strong>
+          Todo lo que cargues, edites o borres acá se guarda de verdad y se muestra (o se saca) del sitio al instante.
         </div>
         <button type="button" id="admin-logout" class="btn btn-sm btn-dark" style="margin-left:auto;">Cerrar sesión</button>
       </div>
 
-      <div class="admin-card">
-        <h2>Propiedades cargadas</h2>
-        <p class="admin-card-desc">Editá o borrá una propiedad existente.</p>
-        <div id="admin-properties-list"></div>
+      <div class="admin-tabs">
+        <button type="button" class="admin-tab is-active" data-tab="nueva">
+          <span class="admin-tab-icon">🏠</span>
+          <span class="admin-tab-label">Nueva propiedad</span>
+        </button>
+        <button type="button" class="admin-tab" data-tab="propiedades">
+          <span class="admin-tab-icon">✏️</span>
+          <span class="admin-tab-label">Mis propiedades</span>
+        </button>
+        <button type="button" class="admin-tab" data-tab="destacadas">
+          <span class="admin-tab-icon">⭐</span>
+          <span class="admin-tab-label">Destacadas</span>
+        </button>
+        <button type="button" class="admin-tab" data-tab="mensajes">
+          <span class="admin-tab-icon">📩</span>
+          <span class="admin-tab-label">Mensajes</span>
+        </button>
       </div>
 
-    <div class="admin-shell">
-      <aside class="admin-sidebar">
-        <h4>Secciones</h4>
-        <ul>
-          <li><a href="#datos-generales">Datos generales</a></li>
-          <li><a href="#ubicacion-precio">Ubicación y precio</a></li>
-          <li><a href="#descripcion">Descripción</a></li>
-          <li><a href="#fotos">Fotos</a></li>
-        </ul>
-      </aside>
+      <section id="tab-panel-propiedades" class="admin-tab-panel" style="display:none;">
+        <div class="admin-card">
+          <h2 class="admin-section-title">✏️ Mis propiedades</h2>
+          <p class="admin-section-help">Acá están todas las propiedades que cargaste. Tocá <strong>Editar</strong> para cambiar sus datos o fotos. Si un alquiler ya se ocupó, mejor tocá <strong>Desactivar</strong> en vez de borrarla — así la sacás del sitio sin perder los datos, y el día que se libera de nuevo la activás y solo actualizás el precio.</p>
+          <div id="admin-properties-list"></div>
+        </div>
+      </section>
 
+      <section id="tab-panel-destacadas" class="admin-tab-panel" style="display:none;">
+        <div class="admin-card">
+          <h2 class="admin-section-title">⭐ Destacadas</h2>
+          <p class="admin-section-help">Las propiedades destacadas son las primeras que ve la gente al entrar al sitio. Tildá las que querés mostrar ahí; el cambio se guarda solo, no hace falta apretar nada más.</p>
+          <div id="admin-featured-list"></div>
+        </div>
+      </section>
+
+      <section id="tab-panel-mensajes" class="admin-tab-panel" style="display:none;">
+        <div class="admin-card">
+          <h2 class="admin-section-title">📩 Mensajes de contacto</h2>
+          <p class="admin-section-help">Estas son las consultas que la gente mandó desde el formulario de "Contacto" del sitio, con la más reciente primero.</p>
+          <div id="admin-messages-list"></div>
+        </div>
+      </section>
+
+      <section id="tab-panel-nueva" class="admin-tab-panel">
+      <div class="admin-card">
+        <h2 class="admin-section-title" id="admin-form-heading">🏠 Nueva propiedad</h2>
+        <p class="admin-section-help" id="admin-form-help">Completá estos datos para publicar un aviso nuevo. Los campos con <strong>*</strong> son obligatorios, el resto podés dejarlos en blanco si no aplican.</p>
+      </div>
       <form id="admin-property-form">
         <div class="admin-card" id="datos-generales">
-          <h2>Datos generales</h2>
-          <p class="admin-card-desc">Información básica de la propiedad.</p>
+          <h2>1. Datos generales</h2>
+          <p class="admin-card-desc">Título, tipo de propiedad y tamaño.</p>
           <div class="admin-form-grid">
             <div class="field field-full">
               <label for="p-title">Título del aviso</label>
@@ -134,7 +165,7 @@
         </div>
 
         <div class="admin-card" id="ubicacion-precio">
-          <h2>Ubicación y precio</h2>
+          <h2>2. Ubicación y precio</h2>
           <p class="admin-card-desc">Dónde está y cuánto sale.</p>
           <div class="admin-form-grid">
             <div class="field">
@@ -167,8 +198,8 @@
         </div>
 
         <div class="admin-card" id="descripcion">
-          <h2>Descripción y características</h2>
-          <p class="admin-card-desc">Contá los detalles que ayudan a decidir.</p>
+          <h2>3. Descripción y características</h2>
+          <p class="admin-card-desc">Contá los detalles que ayudan a decidir. No es obligatorio, pero ayuda a vender más rápido.</p>
           <div class="admin-form-grid">
             <div class="field field-full">
               <label for="p-description">Descripción</label>
@@ -182,8 +213,8 @@
         </div>
 
         <div class="admin-card" id="fotos">
-          <h2>Fotos de la propiedad</h2>
-          <p class="admin-card-desc">Subí las fotos sueltas o comprimidas en un .zip — no hay límite de cantidad. Podés reordenarlas arrastrando, elegir la portada (imagen 1) y eliminar una o varias a la vez.</p>
+          <h2>4. Fotos de la propiedad</h2>
+          <p class="admin-card-desc">Tocá el recuadro de abajo para elegir las fotos desde tu celular o computadora (podés elegir varias a la vez). La primera foto que quede es la que se ve en la portada — se puede cambiar arrastrando o con las flechitas ◀ ▶.</p>
 
           <div class="photo-manager" data-pm-root>
             <div class="pm-dropzone" data-pm-dropzone tabindex="0" role="button" aria-label="Elegir fotos o un archivo zip">
@@ -218,7 +249,7 @@
 
         <div id="admin-result" style="display:none; margin-top:26px;"></div>
       </form>
-    </div>
+      </section>
     </div>
   </div>
 </section>

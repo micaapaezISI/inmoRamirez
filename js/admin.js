@@ -7,6 +7,7 @@
      dashboard de Supabase (Authentication → Users → Add user).
    - Las fotos se suben al bucket "property-photos" de Supabase Storage
      y se guardan como URLs públicas en la columna "images".
+   - Pestañas: Nueva propiedad / Mis propiedades / Destacadas / Mensajes.
    ===================================================================== */
 
 const STORAGE_BUCKET = "property-photos";
@@ -23,18 +24,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const panel = document.getElementById("admin-panel");
   const logoutBtn = document.getElementById("admin-logout");
 
+  const tabButtons = document.querySelectorAll(".admin-tab");
+  const tabPanels = document.querySelectorAll(".admin-tab-panel");
+
   const form = document.getElementById("admin-property-form");
   const resultBox = document.getElementById("admin-result");
   const listBox = document.getElementById("admin-properties-list");
+  const featuredBox = document.getElementById("admin-featured-list");
+  const messagesBox = document.getElementById("admin-messages-list");
   const submitBtn = document.getElementById("admin-submit-btn");
   const cancelEditBtn = document.getElementById("admin-cancel-edit");
+  const formHeading = document.getElementById("admin-form-heading");
+  const formHelp = document.getElementById("admin-form-help");
 
   let editingId = null;
 
+  /* ---------------------------- Pestañas ---------------------------- */
+  function switchTab(tabName) {
+    tabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.tab === tabName));
+    tabPanels.forEach((panelEl) => {
+      panelEl.style.display = panelEl.id === `tab-panel-${tabName}` ? "block" : "none";
+    });
+    window.scrollTo({ top: panel.offsetTop - 20, behavior: "smooth" });
+  }
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+
+  /* ------------------------------ Sesión ----------------------------- */
   function showLoggedIn() {
     loginWrap.style.display = "none";
     panel.style.display = "block";
     loadPropertiesList();
+    loadFeaturedList();
+    loadMessages();
   }
 
   function showLoggedOut() {
@@ -72,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await supabaseClient.auth.signOut();
   });
 
+  /* --------------------------- Editar / crear ------------------------ */
   function startEdit(property) {
     editingId = property.id;
     form.elements.title.value = property.title || "";
@@ -89,22 +114,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     photoManager.setImages((property.images || []).map((url) => ({ url, name: url.split("/").pop() })));
 
+    formHeading.textContent = `✏️ Editando: ${property.title}`;
+    formHelp.textContent = "Cambiá lo que haga falta y tocá \"Actualizar propiedad\" para guardar.";
     submitBtn.textContent = "Actualizar propiedad";
     cancelEditBtn.style.display = "inline-block";
     resultBox.style.display = "none";
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
+    switchTab("nueva");
   }
 
   function stopEdit() {
     editingId = null;
     form.reset();
     photoManager.reset();
+    formHeading.textContent = "🏠 Nueva propiedad";
+    formHelp.textContent = "Completá estos datos para publicar un aviso nuevo. Los campos con * son obligatorios, el resto podés dejarlos en blanco si no aplican.";
     submitBtn.textContent = "Guardar propiedad";
     cancelEditBtn.style.display = "none";
   }
 
   cancelEditBtn.addEventListener("click", stopEdit);
 
+  /* --------------------------- Mis propiedades ------------------------ */
   async function loadPropertiesList() {
     listBox.innerHTML = `<p style="color:var(--color-text-light);">Cargando…</p>`;
     const { data, error } = await supabaseClient.from("properties").select("*").order("created_at", { ascending: false });
@@ -113,22 +143,26 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!data || data.length === 0) {
-      listBox.innerHTML = `<p style="color:var(--color-text-light);">Todavía no hay propiedades cargadas.</p>`;
+      listBox.innerHTML = `<p style="color:var(--color-text-light);">Todavía no hay propiedades cargadas. Andá a la pestaña "Nueva propiedad" para cargar la primera.</p>`;
       return;
     }
     listBox.innerHTML = data
       .map(
         (p) => `
-      <div style="display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--color-border);">
-        <div style="width:64px; height:48px; border-radius:6px; overflow:hidden; flex-shrink:0; background:var(--color-bg-alt);">
-          ${p.images && p.images[0] ? `<img src="${p.images[0]}" alt="" style="width:100%; height:100%; object-fit:cover;">` : ""}
+      <div class="admin-list-row">
+        <div class="admin-list-thumb">
+          ${p.images && p.images[0] ? `<img src="${p.images[0]}" alt="">` : ""}
         </div>
-        <div style="flex:1; min-width:0;">
-          <strong style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.title}</strong>
-          <span style="color:var(--color-text-light); font-size:0.85rem;">${operationLabel(p.operation)} · ${typeLabel(p.type)} · ${p.currency} ${p.price.toLocaleString("es-AR")}</span>
+        <div class="admin-list-info">
+          <span class="admin-list-title">${p.title}</span>
+          ${p.active === false ? `<span class="admin-status-badge">Inactiva</span>` : ""}
+          <span class="admin-list-meta" style="display:block;">${operationLabel(p.operation)} · ${typeLabel(p.type)} · ${p.currency} ${p.price.toLocaleString("es-AR")}</span>
         </div>
-        <button type="button" class="btn btn-sm btn-dark" data-edit-id="${p.id}">Editar</button>
-        <button type="button" class="btn btn-sm" style="background:var(--color-danger); color:#fff;" data-delete-id="${p.id}">Eliminar</button>
+        <div class="admin-list-actions">
+          <button type="button" class="btn btn-sm btn-dark" data-edit-id="${p.id}">Editar</button>
+          <button type="button" class="btn btn-sm ${p.active === false ? "btn-primary" : ""}" data-toggle-active-id="${p.id}" data-current-active="${p.active !== false}">${p.active === false ? "Activar" : "Desactivar"}</button>
+          <button type="button" class="admin-delete-link" data-delete-id="${p.id}">Eliminar definitivamente</button>
+        </div>
       </div>`
       )
       .join("");
@@ -140,10 +174,26 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    listBox.querySelectorAll("[data-toggle-active-id]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = parseInt(btn.dataset.toggleActiveId, 10);
+        const nextActive = btn.dataset.currentActive !== "true";
+        btn.disabled = true;
+        const { error: toggleError } = await supabaseClient.from("properties").update({ active: nextActive }).eq("id", id);
+        btn.disabled = false;
+        if (toggleError) {
+          alert("No se pudo guardar: " + toggleError.message);
+          return;
+        }
+        loadPropertiesList();
+        loadFeaturedList();
+      });
+    });
+
     listBox.querySelectorAll("[data-delete-id]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = parseInt(btn.dataset.deleteId, 10);
-        if (!confirm("¿Eliminar esta propiedad? No se puede deshacer.")) return;
+        if (!confirm("Esto borra la propiedad y sus datos para siempre, no se puede deshacer.\n\n¿Seguro? Si es un alquiler que puede volver a ocuparse, mejor usá \"Desactivar\".")) return;
         const { error: deleteError } = await supabaseClient.from("properties").delete().eq("id", id);
         if (deleteError) {
           alert("No se pudo eliminar: " + deleteError.message);
@@ -151,10 +201,93 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (editingId === id) stopEdit();
         loadPropertiesList();
+        loadFeaturedList();
       });
     });
   }
 
+  /* ------------------------------ Destacadas -------------------------- */
+  async function loadFeaturedList() {
+    featuredBox.innerHTML = `<p style="color:var(--color-text-light);">Cargando…</p>`;
+    const { data, error } = await supabaseClient
+      .from("properties")
+      .select("*")
+      .eq("active", true)
+      .order("created_at", { ascending: false });
+    if (error) {
+      featuredBox.innerHTML = `<p style="color:var(--color-danger);">No se pudo cargar la lista: ${error.message}</p>`;
+      return;
+    }
+    if (!data || data.length === 0) {
+      featuredBox.innerHTML = `<p style="color:var(--color-text-light);">No hay propiedades activas para destacar. Activá alguna desde "Mis propiedades".</p>`;
+      return;
+    }
+    featuredBox.innerHTML = data
+      .map(
+        (p) => `
+      <div class="admin-list-row">
+        <div class="admin-list-thumb">
+          ${p.images && p.images[0] ? `<img src="${p.images[0]}" alt="">` : ""}
+        </div>
+        <div class="admin-list-info">
+          <span class="admin-list-title">${p.title}</span>
+          <span class="admin-list-meta">${operationLabel(p.operation)} · ${typeLabel(p.type)}</span>
+        </div>
+        <label class="admin-featured-toggle">
+          <input type="checkbox" data-featured-id="${p.id}" ${p.featured ? "checked" : ""}>
+          Destacada
+        </label>
+      </div>`
+      )
+      .join("");
+
+    featuredBox.querySelectorAll("[data-featured-id]").forEach((checkbox) => {
+      checkbox.addEventListener("change", async () => {
+        const id = parseInt(checkbox.dataset.featuredId, 10);
+        checkbox.disabled = true;
+        const { error: updateError } = await supabaseClient.from("properties").update({ featured: checkbox.checked }).eq("id", id);
+        checkbox.disabled = false;
+        if (updateError) {
+          alert("No se pudo guardar: " + updateError.message);
+          checkbox.checked = !checkbox.checked;
+        }
+      });
+    });
+  }
+
+  /* --------------------------- Mensajes de contacto -------------------- */
+  async function loadMessages() {
+    messagesBox.innerHTML = `<p style="color:var(--color-text-light);">Cargando…</p>`;
+    const { data, error } = await supabaseClient.from("contact_messages").select("*").order("created_at", { ascending: false });
+    if (error) {
+      messagesBox.innerHTML = `<p style="color:var(--color-danger);">No se pudo cargar los mensajes: ${error.message}</p>`;
+      return;
+    }
+    if (!data || data.length === 0) {
+      messagesBox.innerHTML = `<p style="color:var(--color-text-light);">Todavía no llegó ninguna consulta por el formulario.</p>`;
+      return;
+    }
+    messagesBox.innerHTML = data
+      .map((m) => {
+        const date = new Date(m.created_at).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+        const contactParts = [m.phone, m.email].filter(Boolean).join(" · ");
+        return `
+      <div class="admin-message-card">
+        <div class="admin-message-header">
+          <div>
+            <span class="admin-message-who">${m.name}</span>
+            ${contactParts ? `<span class="admin-message-contact"> · ${contactParts}</span>` : ""}
+            ${m.reason ? `<span class="admin-message-contact"> · Motivo: ${m.reason}</span>` : ""}
+          </div>
+          <span class="admin-message-date">${date}</span>
+        </div>
+        <p>${m.message || ""}</p>
+      </div>`;
+      })
+      .join("");
+  }
+
+  /* -------------------------- Subida de fotos -------------------------- */
   async function uploadNewImages(images) {
     const folder = `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const urls = [];
@@ -176,6 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return urls;
   }
 
+  /* ------------------------------ Guardar ------------------------------ */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -216,16 +350,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (error) throw error;
 
+      const wasEditing = !!editingId;
       resultBox.style.display = "block";
       resultBox.innerHTML = `
         <div class="admin-card" style="border-color: var(--color-secondary); background: var(--color-bg-alt);">
-          <h2>✅ Propiedad ${editingId ? "actualizada" : "publicada"}</h2>
-          <p><strong>${title}</strong> ya está guardada en Supabase y visible en el sitio.</p>
+          <h2>✅ Propiedad ${wasEditing ? "actualizada" : "publicada"}</h2>
+          <p><strong>${title}</strong> ya está guardada y visible en el sitio.</p>
         </div>`;
       resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
 
       stopEdit();
       loadPropertiesList();
+      loadFeaturedList();
     } catch (err) {
       resultBox.style.display = "block";
       resultBox.innerHTML = `

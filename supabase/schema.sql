@@ -19,6 +19,7 @@ create table if not exists public.properties (
   bathrooms int not null default 0,
   area numeric not null default 0,
   featured boolean not null default false,
+  active boolean not null default true,
   description text,
   amenities text[] not null default '{}',
   images text[] not null default '{}',
