@@ -5,7 +5,7 @@
    cuando existan.
    ===================================================================== */
 
-const WHATSAPP_NUMBER = "5493885123456"; // [WHATSAPP] — número de ejemplo, actualizar por el real
+const WHATSAPP_NUMBER = "5493885875116";
 
 async function initPropertyDetail() {
   const root = document.getElementById("property-detail-root");
@@ -88,7 +88,7 @@ async function initPropertyDetail() {
     </div>
     <div class="sidebar-actions">
       <a class="btn btn-whatsapp btn-block" href="https://wa.me/${WHATSAPP_NUMBER}?text=${message}" target="_blank" rel="noopener">💬 Consultar por WhatsApp</a>
-      <a class="btn btn-dark btn-block" href="tel:+5493885123456">📞 Llamar ahora</a>
+      <a class="btn btn-dark btn-block" href="tel:+${WHATSAPP_NUMBER}">📞 Llamar ahora</a>
       <a class="btn btn-outline btn-block" style="color:var(--color-primary); border-color:var(--color-border);" href="contacto.html">✉️ Enviar consulta por formulario</a>
     </div>
   `;

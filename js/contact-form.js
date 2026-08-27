@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `Mensaje: ${message}`
     );
 
-    const whatsappNumber = "5493885123456"; // [WHATSAPP] — número de ejemplo, actualizar por el real
+    const whatsappNumber = "5493885875116";
     window.open(`https://wa.me/${whatsappNumber}?text=${text}`, "_blank");
 
     if (feedback) {

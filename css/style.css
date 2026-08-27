@@ -2,32 +2,29 @@
    INMOBILIARIA RAMIREZ — La Quiaca, Jujuy
    Hoja de estilos base
 
-   *** PALETA DE COLORES Y TIPOGRAFÍA PROVISORIAS ***
-   Todavía no está definido el logo ni la identidad visual final.
-   Todo el sistema de color vive en las variables de :root de abajo:
-   cuando definan el logo, alcanza con cambiar estos valores (o pedirle
-   a Claude que lo haga) y el sitio entero se actualiza solo.
+   *** IDENTIDAD VISUAL: burdeos y oro (logo ramirez-logo-completo.png) ***
+   Todo el sistema de color vive en las variables de :root de abajo, con
+   los valores exactos tomados del logo real: si el logo cambia, alcanza
+   con actualizar estos valores y el sitio entero se actualiza solo.
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* --- Color: PROVISORIO, reemplazar al definir identidad visual ---
-     Paleta "Cerro Suave": clara y delicada, inspirada en los cerros que
-     rodean La Quiaca — arcilla y adobe al sol (los muros de adobe revocado
-     del pueblo), arena y piedra del altiplano, un rosa polvoroso muy suave
-     y la salvia pálida de la vegetación puneña. Tonos más claros y menos
-     saturados que las paletas anteriores, pensados para leerse livianos. */
-  --color-primary: #b98a68;        /* arcilla / adobe al sol — marca institucional */
-  --color-primary-dark: #4a3c30;   /* tierra oscura suave — fondos oscuros (footer, hero) */
-  --color-primary-light: #ddc2a4;  /* arcilla pálida */
-  --color-secondary: #cba3a0;      /* rosa polvoroso — acento cálido, CTAs */
-  --color-secondary-dark: #a67d79;
-  --color-olive: #a9ad8f;          /* salvia pálida (yareta/tola) — variación de acento */
-  --color-olive-dark: #848a68;
-  --color-bg: #faf7f1;             /* crema cálido */
-  --color-bg-alt: #f2ebdd;         /* arena pálida */
-  --color-bg-dark: #4a3c30;        /* tierra oscura suave, footer */
+  /* --- Color: identidad "Ramirez Inmobiliaria" (burdeos y oro) ---
+     Burdeos y oro tomados directamente del logo (la "R" y el techo de la
+     casa); un tercer acento bronce/cobre para diferenciar el badge de
+     alquiler temporario sin salirse de la familia de color. */
+  --color-primary: #6a1b2a;        /* burdeos del logo — marca institucional */
+  --color-primary-dark: #3a1420;   /* vino oscuro — fondos oscuros (footer, hero) */
+  --color-primary-light: #dac6ca;  /* burdeos pálido */
+  --color-secondary: #c8a24a;      /* oro del logo — acento cálido, CTAs */
+  --color-secondary-dark: #967a38;
+  --color-olive: #a97c3d;          /* bronce cálido — variación de acento */
+  --color-olive-dark: #7c5a2c;
+  --color-bg: #f4efe9;             /* crema del logo */
+  --color-bg-alt: #ece1d0;         /* arena cálida */
+  --color-bg-dark: #3a1420;        /* vino oscuro, footer */
   --color-text: #4a4038;
   --color-text-light: #8d8175;
   --color-text-inverse: #f8f4ec;
@@ -239,18 +236,10 @@ h1, h2, h3, h4 {
   color: var(--color-primary-dark);
 }
 
-.brand-mark {
-  width: 42px;
+.brand-mark-img {
   height: 42px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
-  color: var(--color-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 1.1rem;
+  width: auto;
+  display: block;
   flex-shrink: 0;
 }
 
@@ -269,7 +258,7 @@ h1, h2, h3, h4 {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-secondary-dark);
-  background: rgba(203, 163, 160, 0.12);
+  background: rgba(200, 162, 74, 0.12);
   padding: 2px 7px;
   border-radius: 4px;
   margin-left: 8px;
@@ -366,8 +355,8 @@ h1, h2, h3, h4 {
   align-items: center;
   color: var(--color-text-inverse);
   background:
-    linear-gradient(180deg, rgba(74, 60, 48, 0.72) 0%, rgba(74, 60, 48, 0.55) 45%, rgba(74, 60, 48, 0.88) 100%),
-    linear-gradient(135deg, #ddc2a4 0%, #b98a68 60%, #4a3c30 100%);
+    linear-gradient(180deg, rgba(58, 20, 32, 0.72) 0%, rgba(58, 20, 32, 0.55) 45%, rgba(58, 20, 32, 0.88) 100%),
+    linear-gradient(135deg, #c8a24a 0%, #6a1b2a 60%, #3a1420 100%);
   overflow: hidden;
 }
 
@@ -376,8 +365,8 @@ h1, h2, h3, h4 {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(203, 163, 160, 0.18), transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(203, 163, 160, 0.12), transparent 45%);
+    radial-gradient(circle at 15% 20%, rgba(200, 162, 74, 0.18), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(200, 162, 74, 0.12), transparent 45%);
   pointer-events: none;
 }
 
@@ -733,7 +722,7 @@ h1, h2, h3, h4 {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(203, 163, 160, 0.18);
+  background: rgba(200, 162, 74, 0.18);
   color: var(--color-secondary-dark);
   display: flex;
   align-items: center;
@@ -1251,7 +1240,7 @@ h1, h2, h3, h4 {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(203, 163, 160, 0.15);
+  background: rgba(200, 162, 74, 0.15);
   color: var(--color-secondary-dark);
   display: flex;
   align-items: center;
@@ -1652,8 +1641,8 @@ h1, h2, h3, h4 {
 }
 
 .admin-banner {
-  background: rgba(203, 163, 160, 0.12);
-  border: 1px solid rgba(203, 163, 160, 0.35);
+  background: rgba(200, 162, 74, 0.12);
+  border: 1px solid rgba(200, 162, 74, 0.35);
   color: var(--color-text);
   border-radius: var(--radius-md);
   padding: 16px 20px;
@@ -1888,7 +1877,7 @@ h1, h2, h3, h4 {
 
 .pm-dropzone.is-dragover {
   border-color: var(--color-secondary);
-  background: rgba(203, 163, 160, 0.1);
+  background: rgba(200, 162, 74, 0.1);
 }
 
 .pm-dropzone-inner {
