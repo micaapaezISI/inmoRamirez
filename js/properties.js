@@ -6,15 +6,43 @@
    capa que hay que reemplazar por llamadas a esa fuente de datos.
    ===================================================================== */
 
+const FAVORITES_KEY = "ramirez_favoritos";
+
+function getFavorites() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveFavorites(set) {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify([...set]));
+  } catch {
+    // localStorage no disponible (modo privado, etc.) — se ignora silenciosamente
+  }
+}
+
+function toggleFavorite(id) {
+  const favs = getFavorites();
+  const isFav = favs.has(id);
+  if (isFav) favs.delete(id);
+  else favs.add(id);
+  saveFavorites(favs);
+  return !isFav;
+}
+
 function renderPropertyCard(p) {
   const badgeClass =
     p.operation === "venta" ? "badge-venta" : p.operation === "alquiler" ? "badge-alquiler" : "badge-temporal";
+  const isFav = getFavorites().has(p.id);
 
   return `
   <article class="property-card">
     <a href="propiedad.html?id=${p.id}" class="property-media">
       <span class="property-badge ${badgeClass}">${operationLabel(p.operation)}</span>
-      <button class="property-fav" type="button" title="Guardar" aria-label="Guardar propiedad" onclick="event.preventDefault()">&#9825;</button>
+      <button class="property-fav${isFav ? " is-fav" : ""}" type="button" data-fav-id="${p.id}" title="Guardar" aria-label="Guardar propiedad">${isFav ? "&#9829;" : "&#9825;"}</button>
       ${propertyMediaHTML(p, typeLabel(p.type))}
     </a>
     <div class="property-body">
@@ -138,6 +166,22 @@ function initPropertiesPage() {
 function initQuickSearch() {
   const form = document.getElementById("quick-search-form");
   if (!form) return;
+
+  const tabs = document.querySelectorAll("#quick-search-tabs .search-tab");
+  const operationSelect = form.elements["operation"];
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      if (operationSelect) operationSelect.value = tab.dataset.op || "";
+    });
+  });
+  if (operationSelect) {
+    operationSelect.addEventListener("change", () => {
+      tabs.forEach((t) => t.classList.toggle("active", (t.dataset.op || "") === operationSelect.value));
+    });
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const data = new FormData(form);
@@ -150,9 +194,22 @@ function initQuickSearch() {
   });
 }
 
+function initFavoriteButtons() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".property-fav");
+    if (!btn) return;
+    e.preventDefault();
+    const id = parseInt(btn.dataset.favId, 10);
+    const nowFav = toggleFavorite(id);
+    btn.classList.toggle("is-fav", nowFav);
+    btn.innerHTML = nowFav ? "&#9829;" : "&#9825;";
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchProperties();
   renderFeatured();
   initQuickSearch();
   initPropertiesPage();
+  initFavoriteButtons();
 });
