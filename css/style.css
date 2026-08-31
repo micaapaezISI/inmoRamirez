@@ -1350,40 +1350,6 @@ h1, h2, h3, h4 {
 }
 
 /* ===== Página Nosotros: equipo ===== */
-.team-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 26px;
-}
-
-.team-card {
-  background: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  text-align: center;
-}
-
-.team-photo {
-  aspect-ratio: 1;
-}
-
-.team-body {
-  padding: 20px;
-}
-
-.team-body strong {
-  display: block;
-  margin-bottom: 3px;
-}
-
-.team-body span {
-  color: var(--color-secondary-dark);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
 .values-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
