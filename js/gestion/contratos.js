@@ -200,12 +200,13 @@
   async function abrir(id) {
     const c = await datos.uno(datos.tabla('contrato').select('*').eq('id', id));
     if (!c) return avisar('No existe ese contrato.', 'error');
-    const [prop, inq, cuotas, garantes, ajustes] = await Promise.all([
+    const [prop, inq, cuotas, garantes, ajustes, excepciones] = await Promise.all([
       datos.uno(datos.tabla('propiedad').select('calle, numero, barrio').eq('id', c.propiedad_id)),
       datos.uno(datos.tabla('persona').select('nombre, telefono').eq('id', c.inquilino_id)),
       datos.lista(datos.tabla('cuota').select('*').eq('contrato_id', id).order('fecha_vencimiento')),
       datos.lista(datos.tabla('contrato_garante').select('*, persona(nombre)').eq('contrato_id', id)),
       datos.lista(datos.tabla('contrato_ajuste').select('*').eq('contrato_id', id).order('fecha_vigencia')),
+      datos.lista(datos.tabla('contrato_excepcion_cobro').select('*').eq('contrato_id', id).order('creado_en', { ascending: false })),
     ]);
     const dir = [prop.calle, prop.numero].filter(Boolean).join(' ') || '(sin dirección)';
 
@@ -226,6 +227,15 @@
           </div>
           ${ajustes.length ? `<fieldset style="margin-top:12px;"><legend>Historial de ajustes</legend>
             <div class="lista-simple">${ajustes.map((a) => `<div class="lista-simple__item">${fmt.fecha(a.fecha_vigencia)}: ${esc(fmt.dinero(a.monto_anterior))} → <strong>${esc(fmt.dinero(a.monto_nuevo))}</strong></div>`).join('')}</div></fieldset>` : ''}
+          <fieldset style="margin-top:12px;"><legend>Excepciones de cobro (acuerdos informales)</legend>
+            <p class="campo__ayuda">Pausan el próximo ajuste hasta una fecha: mientras están activas, Cobranzas cobra el monto congelado y registra la diferencia como bonificación. No tocan el contrato.</p>
+            <div class="lista-simple">${excepciones.map((e) => `<div class="lista-simple__item">
+              ${e.anulada ? '<span class="pastilla pastilla--anulada">Anulada</span> ' : ''}${fmt.fecha(e.fecha_desde)} → ${fmt.fecha(e.fecha_hasta)} · cobra ${esc(fmt.dinero(e.monto_congelado, c.moneda))}
+              <span class="tenue"> · ${esc(e.motivo)}</span>
+              ${!e.anulada ? `<button class="boton boton--peligro" data-anular-excep="${e.id}" style="float:right;">Anular</button>` : ''}
+            </div>`).join('') || '<p class="campo__ayuda">Sin excepciones.</p>'}</div>
+            ${c.estado === 'vigente' ? `<button class="boton" id="btn-nueva-excep" style="margin-top:8px;">Nueva excepción</button>` : ''}
+          </fieldset>
         </div>
         <div class="panel" data-panel="cuotas" data-activo="0">
           ${grilla([
@@ -243,16 +253,24 @@
         <div class="panel" data-panel="garantes" data-activo="0">
           <div class="lista-simple">${garantes.map((g) => `<div class="lista-simple__item"><strong>${esc(g.persona?.nombre || '?')}</strong>${fmt.titulo(g.tipo_garantia)}${g.detalle ? ` · ${esc(g.detalle)}` : ''}</div>`).join('') || '<p class="campo__ayuda">Sin garantes.</p>'}</div>
         </div>`,
-      extra: c.estado === 'vigente'
+      extra: `<button class="boton" id="btn-contrato-pdf">Imprimir contrato</button>` + (c.estado === 'vigente'
         ? `<button class="boton" id="btn-renovar">Renovar</button><button class="boton boton--peligro" id="btn-rescindir">Rescindir</button>`
-        : '',
+        : ''),
     });
     ficha.irAPanel('datos');
 
+    document.getElementById('btn-contrato-pdf').addEventListener('click', () => G.pdf.generarContrato(id));
     if (c.estado === 'vigente') {
       document.getElementById('btn-rescindir').addEventListener('click', () => abrirRescision(c));
       document.getElementById('btn-renovar').addEventListener('click', () => abrirRenovacion(c));
+      const btnEx = document.getElementById('btn-nueva-excep');
+      if (btnEx) btnEx.addEventListener('click', () => abrirExcepcion(c));
     }
+    document.querySelectorAll('[data-anular-excep]').forEach((b) => b.addEventListener('click', async () => {
+      await datos.actualizar('contrato_excepcion_cobro', Number(b.dataset.anularExcep), { anulada: true, motivo_anulacion: 'Anulada desde el panel' });
+      avisar('Excepción anulada.');
+      abrir(id);
+    }));
     const btnReg = document.getElementById('btn-regenerar-cuotas');
     if (btnReg) btnReg.addEventListener('click', async () => {
       try {
@@ -316,6 +334,35 @@
         G.invalidar('cobranzas');
         await traer();
         abrir(Number(id));
+      },
+    });
+  }
+
+  function abrirExcepcion(c) {
+    dialogo.abrir({
+      titulo: `Excepción de cobro — contrato #${c.id}`,
+      cuerpo: `<p>Mientras esté activa, Cobranzas cobra el <strong>monto congelado</strong> y anota la diferencia como bonificación con este motivo.</p>
+        <div class="campo"><label>Desde</label><input type="date" id="ex-desde" value="${G.hoyISO()}"></div>
+        <div class="campo"><label>Hasta (obligatoria)</label><input type="date" id="ex-hasta"></div>
+        <div class="campo"><label>Monto a cobrar mientras dure</label><input type="text" inputmode="decimal" id="ex-monto" data-dinero="1" value="${G.fmt.pesos(c.monto_inicial)}"></div>
+        <div class="campo"><label>Motivo</label><textarea id="ex-motivo" placeholder="Ej: el propietario pidió no aumentarle hasta diciembre, es conocido"></textarea></div>`,
+      textoConfirmar: 'Guardar excepción',
+      confirmar: async () => {
+        const hasta = document.getElementById('ex-hasta').value;
+        const monto = G.fmt.aCentavos(document.getElementById('ex-monto').value);
+        const motivo = document.getElementById('ex-motivo').value.trim();
+        if (!hasta) throw new Error('Cargá la fecha "hasta".');
+        if (!monto) throw new Error('Cargá el monto congelado.');
+        if (!motivo) throw new Error('Escribí el motivo.');
+        await datos.crear('contrato_excepcion_cobro', {
+          contrato_id: c.id, tipo: 'pausar_ajuste',
+          fecha_desde: document.getElementById('ex-desde').value, fecha_hasta: hasta,
+          monto_congelado: monto, motivo,
+        });
+        avisar('Excepción cargada.');
+        dialogo.cerrar();
+        G.invalidar('cobranzas');
+        abrir(c.id);
       },
     });
   }

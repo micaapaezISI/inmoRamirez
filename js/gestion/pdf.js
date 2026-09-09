@@ -89,5 +89,76 @@
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  G.pdf = { generarRecibo };
+  async function generarContrato(contratoId) {
+    const jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor) { avisar('No se pudo cargar el generador de PDF.', 'error'); return; }
+
+    const c = await datos.uno(datos.tabla('contrato').select('*').eq('id', contratoId));
+    if (!c) { avisar('No existe ese contrato.', 'error'); return; }
+    const [prop, inq, garantes, clausulas, props] = await Promise.all([
+      datos.uno(datos.tabla('propiedad').select('*').eq('id', c.propiedad_id)),
+      datos.uno(datos.tabla('persona').select('*').eq('id', c.inquilino_id)),
+      datos.lista(datos.tabla('contrato_garante').select('*, persona(nombre, documento_tipo, documento)').eq('contrato_id', contratoId)),
+      datos.lista(datos.tabla('contrato_clausula').select('*').eq('contrato_id', contratoId).order('orden')),
+      datos.lista(datos.tabla('propiedad_propietario').select('*, persona(nombre, documento_tipo, documento)').eq('propiedad_id', c.propiedad_id)),
+    ]);
+
+    const doc = new jsPDFctor({ unit: 'mm', format: 'a4' });
+    const M = 20, ANCHO = 170;
+    let y = 22;
+    const p = (txt, opts = {}) => {
+      doc.setFont(undefined, opts.bold ? 'bold' : 'normal');
+      doc.setFontSize(opts.size || 10);
+      const lineas = doc.splitTextToSize(txt, ANCHO);
+      for (const l of lineas) {
+        if (y > 275) { doc.addPage(); y = 22; }
+        doc.text(l, M, y); y += (opts.size || 10) * 0.5;
+      }
+      y += opts.gap ?? 2;
+    };
+
+    const dir = [prop.calle, prop.numero, prop.piso && `piso ${prop.piso}`, prop.departamento && `depto ${prop.departamento}`].filter(Boolean).join(' ');
+    const dueños = props.map((x) => `${x.persona.nombre} (${x.persona.documento_tipo} ${x.persona.documento || 's/d'})`).join(', ');
+
+    p('CONTRATO DE LOCACIÓN', { bold: true, size: 14, gap: 4 });
+    p(`En ${prop.localidad || config.texto('localidad_default')}, a los ${fmt.fecha(c.fecha_inicio)}, entre ${dueños || 'EL LOCADOR'}, en adelante EL LOCADOR, y ${inq.nombre} (${inq.documento_tipo} ${inq.documento || 's/d'})${inq.domicilio ? `, domiciliado en ${inq.domicilio}` : ''}, en adelante EL LOCATARIO, se conviene:`, { gap: 4 });
+
+    p('PRIMERA — Objeto.', { bold: true });
+    p(`EL LOCADOR da en locación a EL LOCATARIO el inmueble sito en ${dir}${prop.barrio ? `, barrio ${prop.barrio}` : ''}, ${prop.localidad || ''}, con destino ${c.tipo_contrato === 'comercial' ? 'comercial' : 'de vivienda'}.`, { gap: 4 });
+
+    p('SEGUNDA — Plazo.', { bold: true });
+    p(`La locación se pacta por el período comprendido entre el ${fmt.fecha(c.fecha_inicio)} y el ${fmt.fecha(c.fecha_fin)}.`, { gap: 4 });
+
+    p('TERCERA — Precio.', { bold: true });
+    p(`El precio mensual es de ${fmt.dinero(c.monto_inicial, c.moneda)}, pagadero por adelantado del 1 al ${c.dia_vencimiento} de cada mes.`, { gap: 2 });
+    if (c.ajuste_tipo === 'porcentaje') p(`El precio se ajustará cada ${c.ajuste_meses} meses en un ${c.ajuste_valor}% sobre el valor vigente.`, { gap: 4 });
+    else if (c.ajuste_tipo === 'indice') p(`El precio se ajustará cada ${c.ajuste_meses} meses según el índice ${c.indice_codigo} publicado por el organismo correspondiente, tomando como base el valor a la fecha de inicio.`, { gap: 4 });
+    else p('El precio se mantendrá sin ajuste durante toda la vigencia.', { gap: 4 });
+
+    if (c.deposito) { p('CUARTA — Depósito en garantía.', { bold: true }); p(`EL LOCATARIO entrega en este acto la suma de ${fmt.dinero(c.deposito, c.moneda)} en concepto de depósito en garantía, que le será reintegrada al finalizar la locación, previa verificación del estado del inmueble y cancelación de deudas.`, { gap: 4 }); }
+
+    if (garantes.length) {
+      p('QUINTA — Garantía.', { bold: true });
+      p(`Garantizan el cumplimiento de las obligaciones de EL LOCATARIO: ${garantes.map((g) => `${g.persona.nombre} (${g.persona.documento_tipo} ${g.persona.documento || 's/d'}) — garantía ${g.tipo_garantia.replace('_', ' ')}`).join('; ')}.`, { gap: 4 });
+    }
+
+    clausulas.forEach((cl, i) => { p(`${['SEXTA', 'SÉPTIMA', 'OCTAVA', 'NOVENA', 'DÉCIMA'][i] || `CLÁUSULA ${i + 6}`} — ${cl.titulo}.`, { bold: true }); p(cl.texto, { gap: 4 }); });
+
+    if (c.notas) { p('OBSERVACIONES.', { bold: true }); p(c.notas, { gap: 4 }); }
+
+    y += 20;
+    if (y > 250) { doc.addPage(); y = 40; }
+    doc.setFontSize(10);
+    doc.text('______________________', M, y); doc.text('______________________', 120, y);
+    doc.text('EL LOCADOR', M, y + 5); doc.text('EL LOCATARIO', 120, y + 5);
+
+    doc.setFontSize(8); doc.setTextColor(120);
+    doc.text('Documento generado desde InmoGestion como borrador. Revisar con un profesional antes de firmar.', 105, 288, { align: 'center' });
+
+    const url = URL.createObjectURL(doc.output('blob'));
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  G.pdf = { generarRecibo, generarContrato };
 })();

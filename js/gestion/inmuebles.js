@@ -113,37 +113,47 @@
 
   let borrador = { propietarios: [] };
   let listaPersonas = [];
+  let fotos = [];
+  const BUCKET = 'property-photos';
 
   async function abrir(id) {
     let p = null;
+    fotos = [];
     listaPersonas = await datos.lista(datos.tabla('persona').select('id, nombre').eq('activo', true).order('nombre'));
     if (id) {
       p = await datos.uno(datos.tabla('propiedad').select('*').eq('id', id));
       const vinc = await datos.lista(datos.tabla('propiedad_propietario').select('*').eq('propiedad_id', id));
       const nombre = Object.fromEntries(listaPersonas.map((x) => [x.id, x.nombre]));
       borrador = { propietarios: vinc.map((v) => ({ persona_id: v.persona_id, porcentaje: v.porcentaje, nombre: nombre[v.persona_id] || '?' })) };
+      fotos = await datos.lista(datos.tabla('propiedad_foto').select('*').eq('propiedad_id', id).order('orden'));
     } else {
       borrador = { propietarios: [] };
     }
 
+    const pestanias = [
+      { id: 'datos', titulo: 'Datos' },
+      { id: 'precios', titulo: 'Precios y web' },
+      { id: 'propietarios', titulo: 'Propietarios' },
+    ];
+    if (id) pestanias.push({ id: 'fotos', titulo: `Fotos (${fotos.length})` });
+
     ficha.abrir({
       titulo: id ? esc(direccion(p)) : 'Nuevo inmueble',
-      cuerpo: cuerpoFicha(p),
-      pestanias: [
-        { id: 'datos', titulo: 'Datos' },
-        { id: 'precios', titulo: 'Precios y web' },
-        { id: 'propietarios', titulo: 'Propietarios' },
-      ],
+      cuerpo: cuerpoFicha(p, !!id),
+      pestanias,
       textoGuardar: id ? 'Guardar cambios' : 'Crear inmueble',
       extra: id ? `<button class="boton boton--peligro" id="inmueble-baja">Dar de baja</button>` : '',
       guardar: () => guardar(id),
     });
     ficha.irAPanel('datos');
     montarPropietarios();
-    if (id) document.getElementById('inmueble-baja').addEventListener('click', () => baja(id, direccion(p)));
+    if (id) {
+      document.getElementById('inmueble-baja').addEventListener('click', () => baja(id, direccion(p)));
+      montarFotos(id);
+    }
   }
 
-  function cuerpoFicha(p) {
+  function cuerpoFicha(p, editando) {
     p = p || {};
     return `<form id="inmueble-form">
       <div class="panel" data-panel="datos" data-activo="1">
@@ -211,7 +221,85 @@
           <p class="propietario__suma" id="prop-suma"></p>
         </fieldset>
       </div>
+
+      ${editando ? `<div class="panel" data-panel="fotos" data-activo="0">
+        <fieldset><legend>Fotos</legend>
+          <p class="campo__ayuda">La primera foto es la portada. Se publican en el sitio si el inmueble tiene "Mostrar en la web pública" tildado.</p>
+          <input type="file" id="foto-input" accept="image/*" multiple style="margin-bottom:10px;">
+          <div class="fotos" id="fotos-grilla"></div>
+          <p id="fotos-estado" class="campo__ayuda"></p>
+        </fieldset>
+      </div>` : ''}
     </form>`;
+  }
+
+  function montarFotos(propId) {
+    const input = document.getElementById('foto-input');
+    if (!input) return;
+    input.addEventListener('change', async () => {
+      const files = [...input.files];
+      input.value = '';
+      const estadoEl = document.getElementById('fotos-estado');
+      for (let i = 0; i < files.length; i++) {
+        estadoEl.textContent = `Subiendo ${i + 1}/${files.length}…`;
+        const file = files[i];
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const path = `gestion/${propId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await G.sb.storage.from(BUCKET).upload(path, file, { contentType: file.type || 'image/jpeg' });
+        if (upErr) { avisar(G.mensajeError(upErr), 'error'); break; }
+        const { data: pub } = G.sb.storage.from(BUCKET).getPublicUrl(path);
+        const nueva = await datos.crear('propiedad_foto', {
+          propiedad_id: propId, archivo: pub.publicUrl,
+          orden: fotos.length, es_portada: fotos.length === 0,
+        });
+        fotos.push(nueva);
+      }
+      estadoEl.textContent = '';
+      dibujarFotos(propId);
+    });
+    dibujarFotos(propId);
+  }
+
+  function dibujarFotos(propId) {
+    const cont = document.getElementById('fotos-grilla');
+    if (!cont) return;
+    cont.innerHTML = fotos.map((f, i) => `
+      <div class="foto" data-portada="${f.es_portada ? 1 : 0}">
+        ${f.es_portada ? '<span class="foto__marca">Portada</span>' : ''}
+        <img src="${esc(f.archivo)}" alt="">
+        <div class="foto__acciones">
+          <button type="button" data-mover="${i}" data-dir="-1" ${i === 0 ? 'disabled' : ''}>◀</button>
+          <button type="button" data-portada-id="${f.id}">⭐</button>
+          <button type="button" data-mover="${i}" data-dir="1" ${i === fotos.length - 1 ? 'disabled' : ''}>▶</button>
+          <button type="button" data-borrar="${f.id}" style="color:var(--error);">✕</button>
+        </div>
+      </div>`).join('') || '<p class="campo__ayuda">Sin fotos todavía.</p>';
+
+    cont.querySelectorAll('[data-borrar]').forEach((b) => b.addEventListener('click', async () => {
+      await G.sb.from('propiedad_foto').delete().eq('id', Number(b.dataset.borrar));
+      fotos = fotos.filter((x) => x.id !== Number(b.dataset.borrar));
+      if (fotos.length && !fotos.some((x) => x.es_portada)) { fotos[0].es_portada = true; await guardarOrdenFotos(propId); }
+      dibujarFotos(propId);
+    }));
+    cont.querySelectorAll('[data-portada-id]').forEach((b) => b.addEventListener('click', async () => {
+      const id = Number(b.dataset.portadaId);
+      fotos.forEach((x) => { x.es_portada = x.id === id; });
+      await guardarOrdenFotos(propId);
+      dibujarFotos(propId);
+    }));
+    cont.querySelectorAll('[data-mover]').forEach((b) => b.addEventListener('click', async () => {
+      const i = Number(b.dataset.mover); const j = i + Number(b.dataset.dir);
+      if (j < 0 || j >= fotos.length) return;
+      [fotos[i], fotos[j]] = [fotos[j], fotos[i]];
+      await guardarOrdenFotos(propId);
+      dibujarFotos(propId);
+    }));
+  }
+
+  async function guardarOrdenFotos(propId) {
+    for (let i = 0; i < fotos.length; i++) {
+      await G.sb.from('propiedad_foto').update({ orden: i, es_portada: fotos[i].es_portada }).eq('id', fotos[i].id);
+    }
   }
 
   function montarPropietarios() {

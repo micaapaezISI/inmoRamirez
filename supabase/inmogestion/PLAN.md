@@ -41,14 +41,30 @@ sin servidor propio.
   + RPC `generar_liquidacion` (reparto por %, comisión, gastos), `pagar_liquidacion`,
   `anular_liquidacion`. Gastos de inmueble. Caja con cajón por medio de pago.
   Pendiente: liquidación garantizada.
-- [x] **Fase 7 — Recibos en PDF** — `js/gestion/pdf.js` (jsPDF client-side). Botón
-  "Imprimir recibo" en el detalle de un cobro y en una liquidación pagada.
-  Pendiente: contrato de alquiler en PDF.
+- [x] **Fase 7 — Recibos y contrato en PDF** — `js/gestion/pdf.js` (jsPDF client-side).
+  "Imprimir recibo" en el detalle de un cobro y en una liquidación pagada;
+  "Imprimir contrato" (borrador de locación) en la ficha del contrato.
+- [x] **Fase 8 — Fotos + sincronización con la web** —
+  `04_sync_web.sql`: trigger que publica en la tabla `properties` (que lee el
+  sitio) todo inmueble con "Mostrar en la web pública" tildado, y lo saca si
+  se destilda o se da de baja. Las filas viejas de `properties` (cargadas a
+  mano) no se tocan: la sync usa la columna nueva `properties.propiedad_id`.
+  Fotos del inmueble: subida al bucket `property-photos` con portada y orden,
+  en la pestaña "Fotos" de la ficha.
+- [x] **Excepciones de cobro** — pantalla para cargarlas y anularlas en la
+  ficha del contrato. La RPC `registrar_cobro` ya las aplicaba.
 
-## Cómo aplicar las funciones (Fases 4-6)
+### Todavía pendiente
+- Ajuste por índice de tipo "variación" (IPC) — falta la fórmula de composición.
+- Liquidación garantizada (pagar al propietario aunque el inquilino no haya pagado).
+- Circuito de estados del cheque (`pago_cheque`).
+- Contrato en PDF: es un borrador, no reemplaza el contrato profesional.
 
-Después de `01_schema.sql` y `02_rls.sql`, correr `03_funciones.sql` en el SQL Editor.
-Es idempotente (`create or replace`).
+## Cómo aplicar (orden)
+
+En el SQL Editor de Supabase, uno por uno: `01_schema.sql`, `02_rls.sql`,
+`03_funciones.sql`, `04_sync_web.sql`. Todos son idempotentes (se pueden volver
+a correr).
 
 ## Reglas de negocio de referencia (en el repo de InmoGestion)
 
