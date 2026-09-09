@@ -339,9 +339,13 @@ begin
     raise exception 'Para renovar hace falta la fecha de inicio, la de fin y el monto nuevo.';
   end if;
 
+  -- El origen pasa a 'renovado' ANTES de crear el nuevo: si no, crear_contrato
+  -- rechaza el alta porque el inmueble "ya tiene un contrato vigente" (el
+  -- mismo que se esta renovando). Todo corre en una transaccion: si el alta
+  -- falla, esto se revierte y el origen queda 'vigente' como estaba.
+  update public.contrato set estado = 'renovado' where id = p_origen_id;
   v_id := crear_contrato(v_nuevo, p_garantes);
   update public.contrato set contrato_origen_id = p_origen_id where id = v_id;
-  update public.contrato set estado = 'renovado' where id = p_origen_id;
   return v_id;
 end $$;
 
@@ -480,21 +484,31 @@ begin
             'Cobro alquiler ' || cu.periodo, v_a_cobrar, p_moneda, 'efectivo', v_pago_id, p_persona_id, c.propiedad_id);
   end loop;
 
-  -- Desglose de medios de pago (la suma tiene que dar el total).
-  for v_medio in select * from jsonb_array_elements(coalesce(p_medios, '[]'::jsonb)) loop
-    v_total_medios := v_total_medios + (v_medio->>'monto')::bigint;
-    if (v_medio->>'monto')::bigint > v_medio_ppal_monto then
-      v_medio_ppal := v_medio->>'medio_pago';
-      v_medio_ppal_monto := (v_medio->>'monto')::bigint;
-    end if;
+  -- Desglose de medios de pago. Si viene un solo medio, se le asigna el
+  -- total calculado por el servidor (asi el frontend no tiene que clavar
+  -- el mismo calculo de mora al centavo). Si vienen varios, la suma tiene
+  -- que dar exacto el total.
+  if jsonb_array_length(coalesce(p_medios,'[]'::jsonb)) = 1 then
+    v_medio := p_medios->0;
+    v_medio_ppal := coalesce(v_medio->>'medio_pago','efectivo');
     insert into public.medio_pago_detalle (pago_id, medio_pago, monto, referencia, comision_monto)
-    values (v_pagos[1], coalesce(v_medio->>'medio_pago','efectivo'), (v_medio->>'monto')::bigint,
+    values (v_pagos[1], v_medio_ppal, v_total,
             nullif(v_medio->>'referencia',''), coalesce((v_medio->>'comision_monto')::bigint, 0));
-  end loop;
-
-  if jsonb_array_length(coalesce(p_medios,'[]'::jsonb)) > 0 and v_total_medios <> v_total then
-    raise exception 'El desglose de medios de pago (%) no coincide con el total a cobrar (%).',
-      (v_total_medios/100.0), (v_total/100.0);
+  elsif jsonb_array_length(coalesce(p_medios,'[]'::jsonb)) > 1 then
+    for v_medio in select * from jsonb_array_elements(p_medios) loop
+      v_total_medios := v_total_medios + (v_medio->>'monto')::bigint;
+      if (v_medio->>'monto')::bigint > v_medio_ppal_monto then
+        v_medio_ppal := v_medio->>'medio_pago';
+        v_medio_ppal_monto := (v_medio->>'monto')::bigint;
+      end if;
+      insert into public.medio_pago_detalle (pago_id, medio_pago, monto, referencia, comision_monto)
+      values (v_pagos[1], coalesce(v_medio->>'medio_pago','efectivo'), (v_medio->>'monto')::bigint,
+              nullif(v_medio->>'referencia',''), coalesce((v_medio->>'comision_monto')::bigint, 0));
+    end loop;
+    if v_total_medios <> v_total then
+      raise exception 'El desglose de medios de pago (%) no coincide con el total a cobrar (%).',
+        (v_total_medios/100.0), (v_total/100.0);
+    end if;
   end if;
 
   if v_medio_ppal is not null then
