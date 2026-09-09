@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Gestión — Inmobiliaria Ramirez</title>
+<link rel="icon" type="image/svg+xml" href="img/ramirez-icon-identity.svg">
+<link rel="stylesheet" href="css/gestion.css">
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="acceso" id="acceso">
+  <form class="acceso__caja" id="acceso-form">
+    <h1>Gestión</h1>
+    <p>Inmobiliaria Ramirez — acceso interno. Usá el mismo usuario y contraseña del panel de administración.</p>
+    <div class="campo">
+      <label for="acceso-email">Email</label>
+      <input type="email" id="acceso-email" autocomplete="username" required>
+    </div>
+    <div class="campo">
+      <label for="acceso-password">Contraseña</label>
+      <input type="password" id="acceso-password" autocomplete="current-password" required>
+    </div>
+    <button class="boton boton--principal" type="submit">Ingresar</button>
+    <p class="campo__error" id="acceso-error" style="display:none; margin-top:10px;"></p>
+    <p style="margin-top:14px;"><a href="admin.html" class="boton-link">← Volver al panel de administración</a></p>
+  </form>
+  <div class="creditos">Diseñada por Commit System — commitsystem.com.ar</div>
+</div>
+
+<!-- ===================== APLICACIÓN ===================== -->
+<div class="aplicacion" id="aplicacion" style="display:none;">
+
+  <nav class="lateral">
+    <div class="lateral__marca">
+      <strong>InmoGestion</strong>
+      <span id="razon-social">Inmobiliaria Ramirez</span>
+    </div>
+    <div class="lateral__menu">
+      <button class="lateral__item" data-modulo="inicio" aria-current="page">
+        <span class="lateral__icono">★</span><span>Hoy</span>
+      </button>
+      <button class="lateral__item" data-modulo="inmuebles">
+        <span class="lateral__icono">▦</span><span>Inmuebles</span>
+      </button>
+      <button class="lateral__item" data-modulo="personas">
+        <span class="lateral__icono">☰</span><span>Personas</span>
+      </button>
+      <button class="lateral__item" data-modulo="alquileres">
+        <span class="lateral__icono">◷</span><span>Alquileres</span>
+      </button>
+      <button class="lateral__item" data-modulo="cobranzas">
+        <span class="lateral__icono">$</span><span>Cobranzas</span>
+      </button>
+      <button class="lateral__item" data-modulo="liquidaciones">
+        <span class="lateral__icono">⌂</span><span>Liquidaciones</span>
+      </button>
+      <button class="lateral__item" data-modulo="caja">
+        <span class="lateral__icono">▤</span><span>Caja</span>
+      </button>
+      <button class="lateral__item" data-modulo="configuracion">
+        <span class="lateral__icono">⚙</span><span>Configuración</span>
+      </button>
+    </div>
+    <div class="lateral__pie">
+      <div id="usuario-actual"></div>
+      <a href="admin.html">Panel web (propiedades y mensajes)</a>
+      <a href="index.html" target="_blank" rel="noopener">Ver el sitio</a>
+      <button id="salir">Salir</button>
+      <div class="creditos">Diseñada por Commit System — commitsystem.com.ar — 3813528234 o 3815350991</div>
+    </div>
+  </nav>
+
+  <main class="contenido">
+    <header class="encabezado">
+      <h1 id="titulo-modulo">Hoy</h1>
+      <button class="boton" id="btn-refrescar" title="Traer los datos más nuevos (o F5)">Actualizar</button>
+      <button class="boton boton--principal" id="btn-nuevo" style="display:none;">Nuevo</button>
+    </header>
+
+    <div id="vistas">
+      <section class="vista" id="vista-inicio"></section>
+      <section class="vista" id="vista-inmuebles" style="display:none;"></section>
+      <section class="vista" id="vista-personas" style="display:none;"></section>
+      <section class="vista" id="vista-alquileres" style="display:none;"></section>
+      <section class="vista" id="vista-cobranzas" style="display:none;"></section>
+      <section class="vista" id="vista-liquidaciones" style="display:none;"></section>
+      <section class="vista" id="vista-caja" style="display:none;"></section>
+      <section class="vista" id="vista-configuracion" style="display:none;"></section>
+    </div>
+  </main>
+
+  <div class="barra-estado">
+    <span class="barra-estado__contador" id="barra-contador"></span>
+    <span class="barra-estado__atajos">
+      <span><kbd>F2</kbd> Nuevo</span>
+      <span><kbd>F5</kbd> Actualizar</span>
+      <span><kbd>Esc</kbd> Cerrar ficha</span>
+    </span>
+  </div>
+</div>
+
+<!-- Ficha lateral genérica (una sola, la reusa el módulo activo) -->
+<div class="velo" id="velo"></div>
+<aside class="ficha" id="ficha">
+  <div class="ficha__encabezado">
+    <h2 id="ficha-titulo">Ficha</h2>
+    <button class="boton" id="ficha-cerrar" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="ficha__pestanias" id="ficha-pestanias" style="display:none;"></div>
+  <div class="ficha__cuerpo" id="ficha-cuerpo"></div>
+  <div class="ficha__pie" id="ficha-pie"></div>
+</aside>
+
+<!-- Diálogo chico genérico (confirmaciones, sub-formularios) -->
+<div class="velo" id="velo-dialogo"></div>
+<aside class="ficha ficha--angosta" id="dialogo">
+  <div class="ficha__encabezado">
+    <h2 id="dialogo-titulo">—</h2>
+    <button class="boton" id="dialogo-cerrar" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="ficha__cuerpo" id="dialogo-cuerpo"></div>
+  <div class="ficha__pie" id="dialogo-pie"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/gestion/core.js"></script>
+<script src="js/gestion/personas.js"></script>
+<script src="js/gestion/inmuebles.js"></script>
+<script src="js/gestion/contratos.js"></script>
+<script src="js/gestion/cobranzas.js"></script>
+<script src="js/gestion/liquidaciones.js"></script>
+<script src="js/gestion/caja.js"></script>
+<script src="js/gestion/inicio.js"></script>
+<script src="js/gestion/configuracion.js"></script>
+<script src="js/gestion/app.js"></script>
+</body>
+</html>

@@ -20,31 +20,33 @@ sin servidor propio.
 
 ## Fases
 
-- [x] **Fase 1 — Esquema**
-  - `01_schema.sql` — tablas del nucleo, indices y vistas (`v_cuota_saldo`, `v_morosidad`, `v_propiedad_listado`), portadas de las migraciones 001..020 de InmoGestion.
-  - `02_rls.sql` — RLS: todo el panel restringido a usuarios autenticados.
-  - **Pendiente**: correr los dos archivos en Supabase (SQL Editor) y confirmar que no hay errores.
-- [ ] **Fase 2 — Shell del panel**
-  - Rediseñar `admin.html` con menu lateral tipo software de escritorio (grilla densa + ficha lateral).
-  - No perder lo actual: alta de propiedades web, "mis propiedades", destacadas, mensajes de contacto.
-- [ ] **Fase 3 — Personas + Inmuebles**
-  - CRUD con baja logica, propietarios con %, fotos (bucket `property-photos`).
-- [ ] **Fase 4 — Contratos + Cuotas**
-  - RPC `crear_contrato` (contrato + garantes + generacion de cuotas por adelantado).
-  - Ajustes: porcentaje fijo e indice tipo coeficiente (ICL/UVA/CER/CASA_PROPIA).
-  - Rescision (anula cuotas futuras) y renovacion (contrato nuevo, el original queda `renovado`).
-  - Estado del inmueble sincronizado con el contrato.
-- [ ] **Fase 5 — Cobranzas**
-  - RPC `registrar_cobro` (pago + imputaciones + recibo correlativo + movimiento de caja).
-  - Mora por dia de atraso (config por contrato con default de instalacion).
-  - Bonificaciones y excepciones de cobro por acuerdo informal.
-  - Multi-medio de pago (`medio_pago_detalle`). Circuito de cheque.
-  - Anulacion logica de cobros.
-- [ ] **Fase 6 — Liquidaciones + Caja**
-  - RPC `generar_liquidacion` (reparto por porcentaje de propietario, gastos, comision).
-  - Liquidacion garantizada.
-  - Caja diaria: cada cobro / pago de liquidacion / gasto / comision deja su movimiento.
-- [ ] **Fase 7 — Recibos y contratos en PDF** (client-side).
+- [x] **Fase 1 — Esquema** (`01_schema.sql`, `02_rls.sql`) — aplicado en Supabase.
+- [x] **Fase 2 — Shell del panel** — `gestion.html` (app full-screen, look de InmoGestion),
+  `css/gestion.css` (portada de `estilos.css`), `js/gestion/core.js` (capa compartida:
+  formato, avisos, ficha lateral, diálogo, grilla, RPC), `js/gestion/app.js` (login con
+  Supabase Auth, navegación, atajos). Link desde `admin.html`. El panel web actual queda igual.
+- [x] **Fase 3 — Personas + Inmuebles** — `js/gestion/personas.js`, `js/gestion/inmuebles.js`.
+  CRUD con baja lógica, roles calculados, propietarios con %.
+  Pendiente: fotos del inmueble, sincronización `propiedad` ↔ `properties` (web).
+- [x] **Fase 4 — Contratos + Cuotas** — `js/gestion/contratos.js` + RPC en `03_funciones.sql`:
+  `crear_contrato`, `generar_cuotas_contrato` (adelantado, ajuste porcentaje e índice
+  coeficiente, se detiene si falta el valor del índice), `rescindir_contrato`, `renovar_contrato`.
+  Pendiente: ajuste IPC (variación), cláusulas, contrato en PDF.
+- [x] **Fase 5 — Cobranzas** — `js/gestion/cobranzas.js` + RPC `registrar_cobro`
+  (pago + imputaciones + recibo correlativo + movimiento de caja), `anular_cobro`,
+  `bonificar_cuota`. Mora por día (config por contrato). Excepción de cobro: la RPC la
+  aplica si hay una fila activa; falta la pantalla para cargarla. Multi-medio parcial.
+  Pendiente: circuito de cheque, comprobantes adjuntos.
+- [x] **Fase 6 — Liquidaciones + Caja** — `js/gestion/liquidaciones.js`, `js/gestion/caja.js`
+  + RPC `generar_liquidacion` (reparto por %, comisión, gastos), `pagar_liquidacion`,
+  `anular_liquidacion`. Gastos de inmueble. Caja con cajón por medio de pago.
+  Pendiente: liquidación garantizada.
+- [ ] **Fase 7 — Recibos y contratos en PDF** (client-side, jsPDF).
+
+## Cómo aplicar las funciones (Fases 4-6)
+
+Después de `01_schema.sql` y `02_rls.sql`, correr `03_funciones.sql` en el SQL Editor.
+Es idempotente (`create or replace`).
 
 ## Reglas de negocio de referencia (en el repo de InmoGestion)
 
