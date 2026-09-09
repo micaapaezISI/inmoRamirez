@@ -264,8 +264,9 @@
         <div class="lista-simple__item"><strong>Imputación</strong>${imp.map((i) => `${fmt.titulo(i.concepto)} ${fmt.periodo(i.cuota?.periodo)}: ${fmt.dinero(i.monto, p.moneda)}`).join('<br>')}</div>
         ${p.anulado ? `<div class="lista-simple__item"><strong>Anulado</strong>${esc(p.motivo_anulacion || '')}</div>` : ''}
       </div>`,
-      extra: p.anulado ? '' : `<button class="boton boton--peligro" id="btn-anular-cobro">Anular cobro</button>`,
+      extra: `${recibo ? `<button class="boton" id="btn-recibo-pdf">Imprimir recibo</button>` : ''}${p.anulado ? '' : `<button class="boton boton--peligro" id="btn-anular-cobro">Anular cobro</button>`}`,
     });
+    if (recibo) document.getElementById('btn-recibo-pdf').addEventListener('click', () => G.pdf.generarRecibo(recibo.id));
     if (!p.anulado) document.getElementById('btn-anular-cobro').addEventListener('click', () => {
       dialogo.abrir({
         titulo: 'Anular cobro', peligro: true, textoConfirmar: 'Anular',

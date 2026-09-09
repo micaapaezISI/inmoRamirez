@@ -136,8 +136,12 @@
       </div>`,
       extra: l.estado === 'pendiente'
         ? `<button class="boton boton--peligro" id="btn-anular-liq">Anular</button><button class="boton boton--principal" id="btn-pagar-liq">Pagar al propietario</button>`
-        : '',
+        : (l.recibo_id ? `<button class="boton" id="btn-liq-pdf">Imprimir recibo</button>` : ''),
     });
+    if (l.recibo_id) {
+      const b = document.getElementById('btn-liq-pdf');
+      if (b) b.addEventListener('click', () => G.pdf.generarRecibo(l.recibo_id));
+    }
     if (l.estado === 'pendiente') {
       document.getElementById('btn-pagar-liq').addEventListener('click', () => abrirPagar(l));
       document.getElementById('btn-anular-liq').addEventListener('click', () => {

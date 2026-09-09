@@ -41,7 +41,9 @@ sin servidor propio.
   + RPC `generar_liquidacion` (reparto por %, comisión, gastos), `pagar_liquidacion`,
   `anular_liquidacion`. Gastos de inmueble. Caja con cajón por medio de pago.
   Pendiente: liquidación garantizada.
-- [ ] **Fase 7 — Recibos y contratos en PDF** (client-side, jsPDF).
+- [x] **Fase 7 — Recibos en PDF** — `js/gestion/pdf.js` (jsPDF client-side). Botón
+  "Imprimir recibo" en el detalle de un cobro y en una liquidación pagada.
+  Pendiente: contrato de alquiler en PDF.
 
 ## Cómo aplicar las funciones (Fases 4-6)
 
