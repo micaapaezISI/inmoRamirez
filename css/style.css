@@ -2,25 +2,25 @@
    INMOBILIARIA RAMIREZ — La Quiaca, Jujuy
    Hoja de estilos base
 
-   *** IDENTIDAD VISUAL: "raíces en la Puna" (Identidad-Ramirez-Inmobiliaria.pdf) ***
-   Paleta y tipografía tomadas de la propuesta de identidad de marca:
-   ocres y terracotas de la tierra y el adobe, con la "franja Puna" de
-   acentos vivos (aguayo) reservada para detalles y firmas. Isotipo:
-   cerros + casa (img/ramirez-icon-identity.svg).
+   *** IDENTIDAD VISUAL: logo "R + casa" (bordo y dorado) ***
+   Paleta tomada del isotipo real del cliente (ramirez-icon-transparent.png):
+   bordo institucional y dorado como acento cálido, con la "franja Puna"
+   de acentos vivos (aguayo) reservada para detalles y firmas.
    ===================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
 
 :root {
-  /* --- Color: identidad "raíces en la Puna" ---
-     Terracota y ocre como base institucional (tierra y textil andino);
-     turquesa (de la franja de acentos del aguayo) para diferenciar el
-     badge de alquiler temporario sin salirse de la paleta de marca. */
-  --color-primary: #c1502e;        /* terracota — marca institucional */
+  /* --- Color: identidad "Ramirez Inmobiliaria" ---
+     Bordo y dorado del isotipo (img/ramirez-icon-transparent.png) como
+     base institucional; turquesa (de la franja de acentos del aguayo)
+     para diferenciar el badge de alquiler temporario sin salirse de la
+     paleta de marca. */
+  --color-primary: #6a1b2a;        /* bordo — marca institucional */
   --color-primary-dark: #2a211c;   /* tierra — fondos oscuros (footer, hero) */
-  --color-primary-light: #f0d3cb;  /* terracota pálido */
-  --color-secondary: #d9a441;      /* ocre — acento cálido, CTAs */
-  --color-secondary-dark: #9c762f;
+  --color-primary-light: #e9dddf;  /* bordo pálido */
+  --color-secondary: #c8a24a;      /* dorado — acento cálido, CTAs */
+  --color-secondary-dark: #a0823b;
   --color-olive: #1f7a72;          /* turquesa (franja Puna) — variación de acento */
   --color-olive-dark: #165852;
 
@@ -377,19 +377,52 @@ h1, h2, h3, h4 {
   display: flex;
   align-items: center;
   color: var(--color-text-inverse);
-  background: linear-gradient(125deg, #241b16 0%, #4a251a 38%, var(--color-primary) 78%, #d4682f 100%);
+  background: linear-gradient(125deg, #241316 0%, #4a1a26 38%, var(--color-primary) 78%, #8a2a41 100%);
   overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #1a120c;
+}
+
+.hero-bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.8s ease;
+  filter: saturate(1.35) contrast(1.1) brightness(1.05);
+}
+
+.hero-bg-slide.is-active {
+  opacity: 1;
+  animation: heroBgZoom 6.3s ease-out forwards;
+}
+
+@keyframes heroBgZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.07); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-slide { transition: none; }
+  .hero-bg-slide.is-active { animation: none; }
 }
 
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   background-image:
-    linear-gradient(90deg, rgba(23, 16, 12, 0.68) 0%, rgba(23, 16, 12, 0.32) 42%, rgba(23, 16, 12, 0) 64%),
-    radial-gradient(circle at 88% 12%, rgba(255, 224, 160, 0.28), transparent 44%),
-    radial-gradient(circle at 92% 88%, rgba(90, 40, 24, 0.5), transparent 46%);
+    linear-gradient(90deg, rgba(20, 14, 10, 0.72) 0%, rgba(20, 14, 10, 0.34) 38%, rgba(20, 14, 10, 0.08) 58%, rgba(20, 14, 10, 0) 78%),
+    radial-gradient(circle at 88% 12%, rgba(255, 224, 160, 0.12), transparent 44%),
+    radial-gradient(circle at 92% 88%, rgba(90, 40, 24, 0.22), transparent 46%);
   pointer-events: none;
 }
 
@@ -400,7 +433,7 @@ h1, h2, h3, h4 {
   bottom: 0;
   height: 8px;
   background: var(--franja-puna);
-  z-index: 2;
+  z-index: 1;
 }
 
 .hero-logo-mark {
@@ -412,13 +445,13 @@ h1, h2, h3, h4 {
   height: 460px;
   max-width: 45vw;
   opacity: 0.14;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
 }
 
 .hero .container {
   position: relative;
-  z-index: 2;
+  z-index: 3;
 }
 
 .hero-content {
@@ -1606,6 +1639,255 @@ h1, h2, h3, h4 {
   transform: scale(1.07);
 }
 
+/* ===== Asistente virtual (chatbot) ===== */
+.rc-launcher {
+  position: fixed;
+  bottom: 94px;
+  right: 24px;
+  z-index: 940;
+  width: 58px;
+  height: 58px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.rc-launcher:hover {
+  transform: scale(1.07);
+}
+
+.rc-launcher-icon-close {
+  display: none;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.rc-chatbot.is-open .rc-launcher svg {
+  display: none;
+}
+
+.rc-chatbot.is-open .rc-launcher-icon-close {
+  display: block;
+}
+
+.rc-panel {
+  position: fixed;
+  bottom: 164px;
+  right: 24px;
+  z-index: 950;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: min(520px, calc(100vh - 200px));
+  background: var(--color-text-inverse);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rc-panel[hidden] {
+  display: none;
+}
+
+.rc-panel-header {
+  background: var(--color-primary-dark);
+  color: var(--color-text-inverse);
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 4px solid;
+  border-image: var(--franja-puna) 1;
+}
+
+.rc-panel-header strong {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+}
+
+.rc-panel-header span {
+  display: block;
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.rc-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.rc-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 120px;
+}
+
+.rc-msg {
+  max-width: 88%;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.rc-msg a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.rc-msg-bot {
+  align-self: flex-start;
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  border-bottom-left-radius: 2px;
+}
+
+.rc-msg-user {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: #fff;
+  border-bottom-right-radius: 2px;
+}
+
+.rc-typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 12px;
+}
+
+.rc-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-light);
+  animation: rc-typing-bounce 1.2s infinite ease-in-out;
+}
+
+.rc-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.rc-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes rc-typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.rc-quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 12px;
+}
+
+.rc-chip {
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.rc-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.rc-chip-wsp {
+  border-color: var(--color-whatsapp);
+  color: var(--color-whatsapp-dark);
+  font-weight: 600;
+}
+
+.rc-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.rc-input {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.rc-input:focus {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 1px;
+}
+
+.rc-send {
+  width: 38px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.rc-send:hover {
+  background: var(--color-primary-dark);
+}
+
+@media (max-width: 600px) {
+  .rc-launcher {
+    bottom: 88px;
+    right: 16px;
+  }
+
+  .rc-panel {
+    right: 16px;
+    left: 16px;
+    bottom: 156px;
+    width: auto;
+    max-height: min(60vh, 480px);
+  }
+}
+
 /* ===== Footer ===== */
 .site-footer {
   background: var(--color-bg-dark);
@@ -1794,44 +2076,106 @@ h1, h2, h3, h4 {
   margin-bottom: 3px;
 }
 
-/* ===== Panel admin — pestañas grandes ===== */
-.admin-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 30px;
+.admin-card--guia {
+  border: 1.5px solid var(--color-primary-light);
+  background: #fffaf7;
 }
 
-.admin-tab {
+.admin-guia-pasos {
+  margin: 14px 0 0;
+  padding-left: 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 20px 12px;
+  gap: 12px;
+}
+
+.admin-guia-pasos li {
+  line-height: 1.55;
+}
+
+.admin-guia-pasos em {
+  font-style: normal;
+  background: var(--color-primary-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  text-decoration: underline;
+  font-size: 0.85rem;
   cursor: pointer;
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-size: 0.95rem;
+  display: inline-block;
+}
+
+/* ===== Panel admin — sidebar unificado (propiedades + InmoGestion) ===== */
+.admin-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 26px;
+  align-items: start;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: calc(var(--header-height) + 20px);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.admin-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.92rem;
   color: var(--color-text);
-  text-align: center;
-  transition: border-color var(--transition), background var(--transition);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
 }
 
-.admin-tab:hover {
-  border-color: var(--color-secondary);
-}
-
-.admin-tab.is-active {
-  border-color: var(--color-primary);
+.admin-sidebar-link:hover {
   background: var(--color-bg-alt);
 }
 
-.admin-tab-icon {
-  font-size: 1.8rem;
-  line-height: 1;
+.admin-sidebar-link.is-active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.admin-sidebar-ico {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.admin-content {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-sidebar {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
 
 .admin-section-title {
@@ -1980,12 +2324,6 @@ h1, h2, h3, h4 {
   color: var(--color-text-light);
   font-size: 0.82rem;
   white-space: nowrap;
-}
-
-@media (max-width: 800px) {
-  .admin-tabs {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* ===== Widget de carga de fotos ===== */

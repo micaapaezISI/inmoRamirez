@@ -3,59 +3,62 @@
    Criterio: software de escritorio, no pagina web. Densidad alta,
    cero decoracion, el color solo se usa para comunicar estado.
 
-   Portada tal cual desde InmoGestion (public/css/estilos.css) al panel
-   de gestion de Inmobiliaria Ramirez. Solo la carga gestion.html — no
-   comparte nada con style.css del sitio publico.
+   Portada desde InmoGestion (public/css/estilos.css), embebida ahora
+   dentro de admin.html (#tab-panel-gestion) en vez de vivir en una
+   gestion.html aparte. Las variables de marca (--acento, --fondo,
+   --barra, --fuente, etc.) apuntan a las de style.css para que se vea
+   parte del mismo sitio; los selectores que antes eran globales
+   (html/body, *, button/input/select/textarea, :focus-visible) quedan
+   acotados a #tab-panel-gestion para no pisar el resto de admin.html.
    ===================================================================== */
 
 :root {
-  --fondo:        #eef1f5;
+  --fondo:        var(--color-bg-alt);
   --superficie:   #ffffff;
-  --superficie-2: #f7f9fb;
-  --borde:        #d5dbe3;
-  --borde-fuerte: #b8c2ce;
-  --texto:        #16202b;
-  --texto-suave:  #5a6875;
-  --acento:       #0b6e99;
-  --acento-claro: #e3f0f6;
-  --barra:        #1c2733;
-  --barra-texto:  #b9c5d1;
-  --barra-activo: #2b3a4a;
+  --superficie-2: var(--color-bg);
+  --borde:        var(--color-border);
+  --borde-fuerte: #c9b8a0;
+  --texto:        var(--color-text);
+  --texto-suave:  var(--color-text-light);
+  --acento:       var(--color-primary);
+  --acento-claro: var(--color-primary-light);
+  --barra:        var(--color-primary-dark);
+  --barra-texto:  #cbb8ae;
+  --barra-activo: var(--color-primary);
 
   --ok:        #1a7f4b;
   --ok-fondo:  #e4f4ec;
   --aviso:     #a8690a;
   --aviso-fondo: #fdf1dd;
-  --error:     #a32c2c;
+  --error:     var(--color-danger);
   --error-fondo: #fbe9e9;
-  --neutro:    #5a6875;
-  --neutro-fondo: #eceff3;
+  --neutro:    var(--color-text-light);
+  --neutro-fondo: var(--color-bg-alt);
 
   --alto-barra-inferior: 30px;
   --ancho-lateral: 190px;
 
-  --fuente: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --fuente: var(--font-body);
   --fuente-datos: "Consolas", "SF Mono", "DejaVu Sans Mono", monospace;
 }
 
-* { box-sizing: border-box; }
+#tab-panel-gestion, #tab-panel-gestion * { box-sizing: border-box; }
 
-html, body {
-  margin: 0;
-  height: 100%;
+#tab-panel-gestion {
   font-family: var(--fuente);
-  /* 14px de base (subido desde 13px): un empujón chico para que se lea
-     más cómodo sin perder la densidad de grilla que ya se buscó a
-     propósito (CLAUDE.md) — una subida más grande hubiese achicado
-     demasiado la cantidad de filas visibles por pantalla. */
   font-size: 14px;
   color: var(--texto);
   background: var(--fondo);
+  border-radius: var(--radius-md);
+  padding: 18px;
 }
 
-button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+#tab-panel-gestion button,
+#tab-panel-gestion input,
+#tab-panel-gestion select,
+#tab-panel-gestion textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
-:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+#tab-panel-gestion :focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
 
 /* ---------- Estructura general ---------- */
 

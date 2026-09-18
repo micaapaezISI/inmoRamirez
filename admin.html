@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel admin — Cargar propiedad — Inmobiliaria Ramirez</title>
-<meta name="description" content="Panel interno para cargar una nueva propiedad, con carga de fotos por selección múltiple o .zip.">
+<title>Panel admin — Inmobiliaria Ramirez</title>
+<meta name="description" content="Panel interno: propiedades, mensajes y sistema de gestión (personas, contratos, cobranzas, liquidaciones y caja).">
 <meta name="robots" content="noindex, nofollow">
-<link rel="icon" type="image/svg+xml" href="img/ramirez-icon-identity.svg">
+<link rel="icon" type="image/png" href="img/ramirez-icon-transparent.png">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/gestion.css">
 </head>
 <body>
 
@@ -15,7 +16,7 @@
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
-      <img src="img/ramirez-icon-identity.svg" alt="Ramirez Inmobiliaria" class="brand-mark-img">
+      <img src="img/ramirez-icon-transparent.png" alt="Ramirez Inmobiliaria" class="brand-mark-img">
       <span class="brand-text">Inmobiliaria Ramirez<small>La Quiaca · Jujuy</small></span>
     </a>
     <nav class="main-nav">
@@ -50,6 +51,13 @@
       <h2>Ingresar</h2>
       <p class="admin-card-desc">Acceso solo para el equipo de Inmobiliaria Ramirez. Pedí el usuario y la contraseña si todavía no los tenés.</p>
       <form id="admin-login-form">
+        <!-- Trampa para bots: invisible para una persona, pero un bot que completa
+             todos los campos del formulario la va a llenar. Si viene con algo, se
+             descarta el intento antes de gastar un intento de login de verdad. -->
+        <div style="position:absolute; left:-9999px;" aria-hidden="true">
+          <label for="login-website">No completar</label>
+          <input type="text" id="login-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="admin-form-grid">
           <div class="field field-full">
             <label for="login-email">Email</label>
@@ -62,6 +70,38 @@
         </div>
         <button type="submit" class="btn btn-primary" style="margin-top:10px;">Ingresar</button>
         <p id="admin-login-error" style="display:none; color:var(--color-danger); margin-top:12px;"></p>
+        <p id="admin-login-lockout" style="display:none; color:var(--color-danger); margin-top:12px;"></p>
+      </form>
+      <button type="button" id="admin-forgot-link" class="link-btn" style="margin-top:14px;">¿Olvidaste tu contraseña?</button>
+
+      <form id="admin-recover-form" style="display:none;">
+        <p class="admin-card-desc">Te mandamos un link a tu email para elegir una contraseña nueva.</p>
+        <div class="field field-full">
+          <label for="recover-email">Email</label>
+          <input type="email" id="recover-email" name="email" required autocomplete="username">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px;">Enviar link de recuperación</button>
+        <p id="admin-recover-msg" style="display:none; margin-top:12px;"></p>
+      </form>
+      <button type="button" id="admin-recover-cancel" class="link-btn" style="display:none; margin-top:14px;">Volver a ingresar</button>
+    </div>
+
+    <div id="admin-reset-wrap" class="admin-card" style="display:none; max-width:420px; margin:0 auto;">
+      <h2>Elegí tu nueva contraseña</h2>
+      <p class="admin-card-desc">Veniste desde el link de recuperación — cargá la contraseña nueva para tu cuenta.</p>
+      <form id="admin-reset-form">
+        <div class="admin-form-grid">
+          <div class="field field-full">
+            <label for="reset-password">Contraseña nueva</label>
+            <input type="password" id="reset-password" name="password" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="field field-full">
+            <label for="reset-password-confirm">Repetila</label>
+            <input type="password" id="reset-password-confirm" name="passwordConfirm" required minlength="8" autocomplete="new-password">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px;">Guardar contraseña nueva</button>
+        <p id="admin-reset-error" style="display:none; color:var(--color-danger); margin-top:12px;"></p>
       </form>
     </div>
 
@@ -72,194 +112,110 @@
           <strong>Estás dentro del panel.</strong>
           Todo lo que cargues, edites o borres acá se guarda de verdad y se muestra (o se saca) del sitio al instante.
         </div>
-        <button type="button" id="admin-logout" class="btn btn-sm btn-dark" style="margin-left:auto;">Cerrar sesión</button>
+        <button type="button" id="admin-ver-guia" class="btn btn-sm btn-dark" style="margin-left:auto;">❓ ¿Cómo empiezo?</button>
+        <button type="button" id="admin-logout" class="btn btn-sm btn-dark">Cerrar sesión</button>
       </div>
 
-      <div class="admin-banner" style="background:var(--color-bg-alt); border-color:var(--color-secondary);">
-        <span style="font-size:1.3rem;">🗂️</span>
-        <div>
-          <strong>Sistema de gestión (InmoGestion)</strong>
-          Personas, inmuebles, contratos, cuotas, cobranzas, liquidaciones a propietarios y caja. Se entra con el mismo usuario y contraseña.
-        </div>
-        <a href="gestion.html" class="btn btn-sm btn-primary" style="margin-left:auto;">Abrir gestión →</a>
-      </div>
+      <div class="admin-shell">
+        <!-- ===================== NAV LATERAL ===================== -->
+        <nav class="admin-sidebar">
+          <button type="button" class="admin-sidebar-link is-active" data-tab="inicio">
+            <span class="admin-sidebar-ico">☀️</span> Hoy
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="inmuebles">
+            <span class="admin-sidebar-ico">🏠</span> Inmuebles
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="destacadas">
+            <span class="admin-sidebar-ico">⭐</span> Destacadas
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="personas">
+            <span class="admin-sidebar-ico">👤</span> Personas
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="alquileres">
+            <span class="admin-sidebar-ico">📄</span> Alquileres
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="cobranzas">
+            <span class="admin-sidebar-ico">💰</span> Cobranzas
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="liquidaciones">
+            <span class="admin-sidebar-ico">🏦</span> Liquidaciones
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="caja">
+            <span class="admin-sidebar-ico">💵</span> Caja
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="mensajes">
+            <span class="admin-sidebar-ico">📩</span> Mensajes
+          </button>
+          <button type="button" class="admin-sidebar-link" data-tab="configuracion">
+            <span class="admin-sidebar-ico">⚙️</span> Configuración
+          </button>
+        </nav>
 
-      <div class="admin-tabs">
-        <button type="button" class="admin-tab is-active" data-tab="nueva">
-          <span class="admin-tab-icon">🏠</span>
-          <span class="admin-tab-label">Nueva propiedad</span>
-        </button>
-        <button type="button" class="admin-tab" data-tab="propiedades">
-          <span class="admin-tab-icon">✏️</span>
-          <span class="admin-tab-label">Mis propiedades</span>
-        </button>
-        <button type="button" class="admin-tab" data-tab="destacadas">
-          <span class="admin-tab-icon">⭐</span>
-          <span class="admin-tab-label">Destacadas</span>
-        </button>
-        <button type="button" class="admin-tab" data-tab="mensajes">
-          <span class="admin-tab-icon">📩</span>
-          <span class="admin-tab-label">Mensajes</span>
-        </button>
-      </div>
+        <!-- ===================== CONTENIDO ===================== -->
+        <div class="admin-content">
 
-      <section id="tab-panel-propiedades" class="admin-tab-panel" style="display:none;">
-        <div class="admin-card">
-          <h2 class="admin-section-title">✏️ Mis propiedades</h2>
-          <p class="admin-section-help">Acá están todas las propiedades que cargaste. Tocá <strong>Editar</strong> para cambiar sus datos o fotos. Si un alquiler ya se ocupó, mejor tocá <strong>Desactivar</strong> en vez de borrarla — así la sacás del sitio sin perder los datos, y el día que se libera de nuevo la activás y solo actualizás el precio.</p>
-          <div id="admin-properties-list"></div>
-        </div>
-      </section>
-
-      <section id="tab-panel-destacadas" class="admin-tab-panel" style="display:none;">
-        <div class="admin-card">
-          <h2 class="admin-section-title">⭐ Destacadas</h2>
-          <p class="admin-section-help">Las propiedades destacadas son las primeras que ve la gente al entrar al sitio. Tildá las que querés mostrar ahí; el cambio se guarda solo, no hace falta apretar nada más.</p>
-          <div id="admin-featured-list"></div>
-        </div>
-      </section>
-
-      <section id="tab-panel-mensajes" class="admin-tab-panel" style="display:none;">
-        <div class="admin-card">
-          <h2 class="admin-section-title">📩 Mensajes de contacto</h2>
-          <p class="admin-section-help">Estas son las consultas que la gente mandó desde el formulario de "Contacto" del sitio, con la más reciente primero.</p>
-          <div id="admin-messages-list"></div>
-        </div>
-      </section>
-
-      <section id="tab-panel-nueva" class="admin-tab-panel">
-      <div class="admin-card">
-        <h2 class="admin-section-title" id="admin-form-heading">🏠 Nueva propiedad</h2>
-        <p class="admin-section-help" id="admin-form-help">Completá estos datos para publicar un aviso nuevo. Los campos con <strong>*</strong> son obligatorios, el resto podés dejarlos en blanco si no aplican.</p>
-      </div>
-      <form id="admin-property-form">
-        <div class="admin-card" id="datos-generales">
-          <h2>1. Datos generales</h2>
-          <p class="admin-card-desc">Título, tipo de propiedad y tamaño.</p>
-          <div class="admin-form-grid">
-            <div class="field field-full">
-              <label for="p-title">Título del aviso</label>
-              <input type="text" id="p-title" name="title" placeholder="Ej: Casa 3 dormitorios con patio" required>
-            </div>
-            <div class="field">
-              <label for="p-operation">Operación</label>
-              <select id="p-operation" name="operation" required>
-                <option value="venta">Venta</option>
-                <option value="alquiler">Alquiler</option>
-                <option value="temporal">Alquiler temporario</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="p-type">Tipo de propiedad</label>
-              <select id="p-type" name="type" required>
-                <option value="casa">Casa</option>
-                <option value="departamento">Departamento</option>
-                <option value="terreno">Terreno</option>
-                <option value="local">Local comercial</option>
-                <option value="finca">Finca</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="p-bedrooms">Dormitorios</label>
-              <input type="number" id="p-bedrooms" name="bedrooms" min="0" step="1" value="0">
-            </div>
-            <div class="field">
-              <label for="p-bathrooms">Baños</label>
-              <input type="number" id="p-bathrooms" name="bathrooms" min="0" step="1" value="0">
-            </div>
-            <div class="field">
-              <label for="p-area">Superficie (m²)</label>
-              <input type="number" id="p-area" name="area" min="0" step="1" required>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-card" id="ubicacion-precio">
-          <h2>2. Ubicación y precio</h2>
-          <p class="admin-card-desc">Dónde está y cuánto sale.</p>
-          <div class="admin-form-grid">
-            <div class="field">
-              <label for="p-zone">Zona / barrio</label>
-              <select id="p-zone" name="zone">
-                <option value="Centro">Centro</option>
-                <option value="Barrio Cruce">Barrio Cruce</option>
-                <option value="Barrio Belgrano">Barrio Belgrano</option>
-                <option value="Barrio Ferroviario">Barrio Ferroviario</option>
-                <option value="Zona Puna / Yavi">Zona Puna / Yavi</option>
-                <option value="Zona rural / Puna">Zona rural / Puna</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="p-address">Dirección (referencia)</label>
-              <input type="text" id="p-address" name="address" placeholder="Ej: a metros de Av. España, Centro">
-            </div>
-            <div class="field">
-              <label for="p-currency">Moneda</label>
-              <select id="p-currency" name="currency">
-                <option value="USD">USD</option>
-                <option value="ARS">ARS ($)</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="p-price">Precio</label>
-              <input type="number" id="p-price" name="price" min="0" step="1" required>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-card" id="descripcion">
-          <h2>3. Descripción y características</h2>
-          <p class="admin-card-desc">Contá los detalles que ayudan a decidir. No es obligatorio, pero ayuda a vender más rápido.</p>
-          <div class="admin-form-grid">
-            <div class="field field-full">
-              <label for="p-description">Descripción</label>
-              <textarea id="p-description" name="description" rows="4" placeholder="Describí la propiedad..."></textarea>
-            </div>
-            <div class="field field-full">
-              <label for="p-amenities">Características (separadas por coma)</label>
-              <input type="text" id="p-amenities" name="amenities" placeholder="Ej: Garage, Patio con parrilla, Calefacción a leña">
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-card" id="fotos">
-          <h2>4. Fotos de la propiedad</h2>
-          <p class="admin-card-desc">Tocá el recuadro de abajo para elegir las fotos desde tu celular o computadora (podés elegir varias a la vez). La primera foto que quede es la que se ve en la portada — se puede cambiar arrastrando o con las flechitas ◀ ▶.</p>
-
-          <div class="photo-manager" data-pm-root>
-            <div class="pm-dropzone" data-pm-dropzone tabindex="0" role="button" aria-label="Elegir fotos o un archivo zip">
-              <input type="file" data-pm-file-input accept="image/*,.zip,application/zip" multiple hidden>
-              <div class="pm-dropzone-inner">
-                <span class="pm-dropzone-ico">📷</span>
-                <strong>Arrastrá tus fotos acá o hacé clic para elegir</strong>
-                <span>Podés seleccionar varias imágenes a la vez, o subir un .zip con todas las fotos de la propiedad. Sin límite de cantidad.</span>
-                <button type="button" class="btn btn-dark btn-sm" data-pm-browse-btn>Elegir archivos</button>
+          <section id="tab-panel-gestion" class="admin-tab-panel">
+            <div class="admin-card" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+              <h2 class="admin-section-title" id="titulo-modulo" style="margin:0;">Hoy</h2>
+              <span id="barra-contador" style="color:var(--texto-suave); font-size:0.85rem;"></span>
+              <div style="margin-left:auto; display:flex; gap:10px;">
+                <button type="button" class="boton" id="btn-refrescar" title="Traer los datos más nuevos (o F5)">Actualizar</button>
+                <button type="button" class="boton boton--principal" id="btn-nuevo" style="display:none;">Nuevo</button>
               </div>
             </div>
-
-            <div class="pm-toolbar" data-pm-toolbar style="display:none;">
-              <span data-pm-count>0 fotos cargadas</span>
-              <div class="pm-bulk-actions" data-pm-bulk-actions style="display:none;">
-                <span data-pm-selected-count>0 seleccionadas</span>
-                <button type="button" class="btn btn-sm" data-pm-delete-selected style="background:var(--color-danger); color:#fff;">Eliminar seleccionadas</button>
-                <button type="button" class="btn btn-sm btn-dark" data-pm-clear-selection>Cancelar selección</button>
-              </div>
+            <div id="vistas">
+              <section class="vista" id="vista-inicio"></section>
+              <section class="vista" id="vista-inmuebles" style="display:none;"></section>
+              <section class="vista" id="vista-personas" style="display:none;"></section>
+              <section class="vista" id="vista-alquileres" style="display:none;"></section>
+              <section class="vista" id="vista-cobranzas" style="display:none;"></section>
+              <section class="vista" id="vista-liquidaciones" style="display:none;"></section>
+              <section class="vista" id="vista-caja" style="display:none;"></section>
+              <section class="vista" id="vista-configuracion" style="display:none;"></section>
             </div>
+          </section>
 
-            <p class="pm-hint" data-pm-hint style="display:none;">⭐ La primera foto es la <strong>portada</strong>. Arrastrá las miniaturas para reordenar, usá ◀ ▶ para moverlas, o ⭐ para hacer portada a otra foto.</p>
+          <section id="tab-panel-destacadas" class="admin-tab-panel" style="display:none;">
+            <div class="admin-card">
+              <h2 class="admin-section-title">⭐ Destacadas</h2>
+              <p class="admin-section-help">Las propiedades destacadas son las primeras que ve la gente al entrar al sitio. Tildá las que querés mostrar ahí; el cambio se guarda solo, no hace falta apretar nada más.</p>
+              <div id="admin-featured-list"></div>
+            </div>
+          </section>
 
-            <div class="pm-grid" data-pm-grid></div>
+          <section id="tab-panel-mensajes" class="admin-tab-panel" style="display:none;">
+            <div class="admin-card">
+              <h2 class="admin-section-title">📩 Mensajes de contacto</h2>
+              <p class="admin-section-help">Estas son las consultas que la gente mandó desde el formulario de "Contacto" del sitio, con la más reciente primero.</p>
+              <div id="admin-messages-list"></div>
+            </div>
+          </section>
 
-            <p data-pm-status role="status" aria-live="polite" style="display:none; font-size:0.85rem;"></p>
-          </div>
         </div>
+      </div>
 
-        <button type="submit" class="btn btn-primary" id="admin-submit-btn" style="padding:15px 34px;">Guardar propiedad</button>
-        <button type="button" id="admin-cancel-edit" class="btn btn-dark" style="padding:15px 26px; display:none;">Cancelar edición</button>
+      <!-- Ficha lateral genérica (una sola, la reusa el módulo activo de Gestión) -->
+      <div class="velo" id="velo"></div>
+      <aside class="ficha" id="ficha">
+        <div class="ficha__encabezado">
+          <h2 id="ficha-titulo">Ficha</h2>
+          <button class="boton" id="ficha-cerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="ficha__pestanias" id="ficha-pestanias" style="display:none;"></div>
+        <div class="ficha__cuerpo" id="ficha-cuerpo"></div>
+        <div class="ficha__pie" id="ficha-pie"></div>
+      </aside>
 
-        <div id="admin-result" style="display:none; margin-top:26px;"></div>
-      </form>
-      </section>
+      <!-- Diálogo chico genérico (confirmaciones, sub-formularios) -->
+      <div class="velo" id="velo-dialogo"></div>
+      <aside class="ficha ficha--angosta" id="dialogo">
+        <div class="ficha__encabezado">
+          <h2 id="dialogo-titulo">—</h2>
+          <button class="boton" id="dialogo-cerrar" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="ficha__cuerpo" id="dialogo-cuerpo"></div>
+        <div class="ficha__pie" id="dialogo-pie"></div>
+      </aside>
     </div>
   </div>
 </section>
@@ -269,7 +225,7 @@
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <div class="brand"><img src="img/ramirez-icon-identity.svg" alt="Ramirez Inmobiliaria" class="brand-mark-img"><span class="brand-text">Inmobiliaria Ramirez</span></div>
+        <div class="brand"><img src="img/ramirez-icon-transparent.png" alt="Ramirez Inmobiliaria" class="brand-mark-img"><span class="brand-text">Inmobiliaria Ramirez</span></div>
         <p>Compra, venta y alquiler de propiedades en La Quiaca y San Salvador de Jujuy. Atención cercana y de confianza.</p>
         <!-- Redes sociales: todavía no existen (pendiente que la clienta las cree). Descomentar y completar los href cuando estén listas. -->
         <!--
@@ -313,10 +269,20 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/supabase-config.js"></script>
+<script src="js/num-parse.js"></script>
 <script src="js/properties-data.js"></script>
-<script src="js/vendor/zip-lite.js"></script>
-<script src="js/photo-manager.js"></script>
+<script src="js/gestion/core.js"></script>
+<script src="js/gestion/pdf.js"></script>
+<script src="js/gestion/personas.js"></script>
+<script src="js/gestion/inmuebles.js"></script>
+<script src="js/gestion/contratos.js"></script>
+<script src="js/gestion/cobranzas.js"></script>
+<script src="js/gestion/liquidaciones.js"></script>
+<script src="js/gestion/caja.js"></script>
+<script src="js/gestion/inicio.js"></script>
+<script src="js/gestion/configuracion.js"></script>
 <script src="js/admin.js"></script>
 <script src="js/main.js"></script>
 </body>

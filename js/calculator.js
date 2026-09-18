@@ -128,12 +128,30 @@ function initCalculator() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = new FormData(form);
-    const amount = parseFloat(data.get("amount")) || 0;
     const indexKey = data.get("index");
     const months = parseInt(data.get("frequency"), 10) || 12;
-    const fixedAnnualPct = parseFloat(data.get("fixedPct")) || 0;
 
     errorBox.style.display = "none";
+
+    const amount = parseArMoney(data.get("amount"));
+    if (amount === null) {
+      errorBox.textContent = "⚠️ Ese monto no es válido, escribilo así: 150.000";
+      errorBox.style.display = "block";
+      filledBox.style.display = "none";
+      emptyBox.style.display = "none";
+      return;
+    }
+    let fixedAnnualPct = 0;
+    if (indexKey === "fijo") {
+      fixedAnnualPct = parseArPercent(data.get("fixedPct"));
+      if (fixedAnnualPct === null) {
+        errorBox.textContent = "⚠️ Ese porcentaje no es válido, escribilo así: 40 (o 40,5)";
+        errorBox.style.display = "block";
+        filledBox.style.display = "none";
+        emptyBox.style.display = "none";
+        return;
+      }
+    }
 
     submitBtn.disabled = true;
     const originalBtnText = submitBtn.textContent;

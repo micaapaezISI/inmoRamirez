@@ -26,14 +26,29 @@ const fmt = {
       minimumFractionDigits: 2, maximumFractionDigits: 2,
     });
   },
-  // Espejo de aCentavos en src/utils/dinero.js de InmoGestion. Acepta
-  // formato argentino ("1.234.567,89") y decimal con punto.
+  // Delega en js/num-parse.js (mismo parseo que usa el sitio público, para
+  // no tener dos lugares con la misma lógica y el riesgo de que se
+  // desincronicen). Acepta formato argentino ("1.234.567,89").
   aCentavos(valor) {
-    if (valor === null || valor === undefined || valor === '') return null;
-    if (typeof valor === 'number') return Math.round(valor * 100);
-    const limpio = String(valor).trim().replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
-    const numero = Number(limpio);
-    return Number.isFinite(numero) ? Math.round(numero * 100) : null;
+    const numero = parseArMoney(valor);
+    return numero === null ? null : Math.round(numero * 100);
+  },
+  // Porcentajes: nunca llevan separador de miles (ver js/num-parse.js).
+  aPorcentaje(valor) {
+    return parseArPercent(valor);
+  },
+  // Índices/tasas: pueden superar los miles y llevar varios decimales,
+  // pero no se redondean a centavos como el dinero.
+  aIndice(valor) {
+    return parseArIndex(valor);
+  },
+  porcentaje(valor) {
+    if (valor === null || valor === undefined || valor === '') return '';
+    return Number(valor).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  },
+  indice(valor) {
+    if (valor === null || valor === undefined || valor === '') return '';
+    return Number(valor).toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
   },
   titulo(texto) {
     if (!texto) return '';
@@ -107,6 +122,10 @@ function avisar(mensaje, tipo = 'ok') {
 function mensajeError(error) {
   if (!error) return 'Algo salió mal.';
   if (typeof error === 'string') return error;
+  if (error instanceof ErrorValidacion) {
+    // Si es un solo campo, decir cuál en vez del genérico "revisá los datos".
+    return error.errores && error.errores.length === 1 ? error.errores[0].mensaje : error.message;
+  }
   const m = error.message || error.error_description || error.hint || '';
   if (!m) return 'Algo salió mal. Probá de nuevo.';
   if (m.includes('duplicate key') || m.includes('llave duplicada')) return 'Ya existe un registro con esos datos.';
@@ -320,7 +339,11 @@ function pastilla(valor) {
   return `<span class="pastilla pastilla--${esc(valor)}">${esc(fmt.titulo(valor))}</span>`;
 }
 
-// Campo de formulario. tipo: text|number|date|select|textarea|dinero|checkbox
+// Campo de formulario. tipo: text|number|date|select|textarea|dinero|porcentaje|indice|checkbox
+// dinero/porcentaje/indice son <input type="text" inputmode="decimal"> a
+// propósito: un <input type="number"> nativo solo admite un separador
+// decimal y descarta el punto de miles en silencio si alguien escribe
+// "1.500.000" — ver js/num-parse.js.
 function campo(nombre, etiqueta, opciones = {}) {
   const {
     tipo = 'text', valor = '', requerido = false, ancho = 1, ayuda = '',
@@ -342,6 +365,12 @@ function campo(nombre, etiqueta, opciones = {}) {
   } else if (tipo === 'dinero') {
     const mostrado = (valor === '' || valor === null || valor === undefined) ? '' : fmt.pesos(valor);
     control = `<input type="text" inputmode="decimal" id="${id}" name="${nombre}" data-dinero="1" value="${esc(mostrado)}" ${req} placeholder="${esc(placeholder || '0,00')}">`;
+  } else if (tipo === 'porcentaje') {
+    const mostrado = (valor === '' || valor === null || valor === undefined) ? '' : fmt.porcentaje(valor);
+    control = `<input type="text" inputmode="decimal" id="${id}" name="${nombre}" data-porcentaje="1" value="${esc(mostrado)}" ${req} placeholder="${esc(placeholder || 'Ej: 12,5')}">`;
+  } else if (tipo === 'indice') {
+    const mostrado = (valor === '' || valor === null || valor === undefined) ? '' : fmt.indice(valor);
+    control = `<input type="text" inputmode="decimal" id="${id}" name="${nombre}" data-indice="1" value="${esc(mostrado)}" ${req} placeholder="${esc(placeholder || 'Ej: 4.521,8734')}">`;
   } else {
     const attrs = [
       tipo === 'number' && min !== undefined ? `min="${min}"` : '',
@@ -359,16 +388,43 @@ function campo(nombre, etiqueta, opciones = {}) {
 }
 
 // Lee un <form> (o contenedor con inputs con name). Los campos
-// data-dinero="1" vuelven a centavos enteros.
+// data-dinero/data-porcentaje/data-indice="1" se parsean en formato
+// argentino (js/num-parse.js). Si alguno tiene texto que no se puede
+// convertir a un número válido, NO se guarda en silencio: se marca el
+// campo en rojo y se corta el guardado con ErrorValidacion (lo atrapa el
+// try/catch que ya envuelve a ficha._guardar()/dialogo._confirmar()).
 function leerFormulario(contenedor) {
   const out = {};
+  const errores = [];
+  const EJEMPLOS = { dinero: '150.000', porcentaje: '12,5', indice: '4.521,8734' };
   contenedor.querySelectorAll('[name]').forEach((el) => {
     const n = el.name;
-    if (el.type === 'checkbox') out[n] = el.checked;
-    else if (el.dataset.dinero === '1') out[n] = fmt.aCentavos(el.value);
-    else if (el.type === 'number') out[n] = el.value === '' ? null : Number(el.value);
-    else out[n] = el.value.trim() === '' ? null : el.value.trim();
+    const bruto = el.value;
+    let tipoNumerico = null;
+    if (el.dataset.dinero === '1') tipoNumerico = 'dinero';
+    else if (el.dataset.porcentaje === '1') tipoNumerico = 'porcentaje';
+    else if (el.dataset.indice === '1') tipoNumerico = 'indice';
+
+    if (el.type === 'checkbox') {
+      out[n] = el.checked;
+    } else if (tipoNumerico) {
+      const parseado = tipoNumerico === 'dinero' ? fmt.aCentavos(bruto)
+        : tipoNumerico === 'porcentaje' ? fmt.aPorcentaje(bruto)
+        : fmt.aIndice(bruto);
+      if (parseado === null && bruto.trim() !== '') {
+        errores.push({ campo: n, mensaje: `Ese valor no es válido, escribilo así: ${EJEMPLOS[tipoNumerico]}` });
+      }
+      out[n] = parseado;
+    } else if (el.type === 'number') {
+      out[n] = el.value === '' ? null : Number(el.value);
+    } else {
+      out[n] = el.value.trim() === '' ? null : el.value.trim();
+    }
   });
+  if (errores.length) {
+    marcarErrores(contenedor, errores);
+    throw new ErrorValidacion(errores);
+  }
   return out;
 }
 

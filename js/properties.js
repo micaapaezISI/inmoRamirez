@@ -69,8 +69,12 @@ function renderFeatured() {
 }
 
 function applyFilters(params) {
-  const priceMin = params.priceMin !== "" && params.priceMin != null ? parseFloat(params.priceMin) : null;
-  const priceMax = params.priceMax !== "" && params.priceMax != null ? parseFloat(params.priceMax) : null;
+  // parseArMoney (js/num-parse.js) entiende "1.500.000" como un millón y
+  // medio, no como 1.5 — un <input type="number"> nativo se comería el
+  // segundo punto en silencio. Si el texto no es un número válido, se
+  // ignora ese límite (no rompe la búsqueda, simplemente no filtra por ahí).
+  const priceMin = params.priceMin !== "" && params.priceMin != null ? parseArMoney(params.priceMin) : null;
+  const priceMax = params.priceMax !== "" && params.priceMax != null ? parseArMoney(params.priceMax) : null;
 
   return PROPERTIES.filter((p) => {
     if (params.operation && params.operation !== "todas" && p.operation !== params.operation) return false;

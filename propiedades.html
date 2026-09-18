@@ -5,7 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Propiedades en La Quiaca y San Salvador de Jujuy — Inmobiliaria Ramirez</title>
 <meta name="description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario en La Quiaca y San Salvador de Jujuy.">
-<link rel="icon" type="image/svg+xml" href="img/ramirez-icon-identity.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Inmobiliaria Ramirez">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="Propiedades en La Quiaca y San Salvador de Jujuy — Inmobiliaria Ramirez">
+<meta property="og:description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario en La Quiaca y San Salvador de Jujuy.">
+<meta property="og:image" content="https://www.inmobiliariaramirez.com.ar/img/hero/quebrada-paleta-pintor.jpg">
+<meta property="og:url" content="https://www.inmobiliariaramirez.com.ar/propiedades.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Propiedades en La Quiaca y San Salvador de Jujuy">
+<meta name="twitter:description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario.">
+<meta name="twitter:image" content="https://www.inmobiliariaramirez.com.ar/img/hero/quebrada-paleta-pintor.jpg">
+<link rel="icon" type="image/png" href="img/ramirez-icon-transparent.png">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -14,7 +25,7 @@
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
-      <img src="img/ramirez-icon-identity.svg" alt="Ramirez Inmobiliaria" class="brand-mark-img">
+      <img src="img/ramirez-icon-transparent.png" alt="Ramirez Inmobiliaria" class="brand-mark-img">
       <span class="brand-text">Inmobiliaria Ramirez<small>La Quiaca · Jujuy</small></span>
     </a>
     <nav class="main-nav">
@@ -100,11 +111,11 @@
         </div>
         <div class="field">
           <label for="f-price-min">Precio mínimo</label>
-          <input type="number" id="f-price-min" name="priceMin" min="0" step="1" placeholder="Sin mínimo">
+          <input type="text" inputmode="decimal" id="f-price-min" name="priceMin" placeholder="Sin mínimo">
         </div>
         <div class="field">
           <label for="f-price-max">Precio máximo</label>
-          <input type="number" id="f-price-max" name="priceMax" min="0" step="1" placeholder="Sin máximo">
+          <input type="text" inputmode="decimal" id="f-price-max" name="priceMax" placeholder="Sin máximo">
         </div>
       </div>
       <div class="filters-actions">
@@ -139,7 +150,7 @@
       <form class="calc-form" id="calc-form">
         <div class="field">
           <label for="calc-amount">Monto actual del alquiler (ARS)</label>
-          <input type="number" id="calc-amount" name="amount" min="0" step="1" placeholder="Ej: 150000" required>
+          <input type="text" inputmode="decimal" id="calc-amount" name="amount" placeholder="Ej: 150.000" required>
         </div>
         <div class="field">
           <label for="calc-index">Índice de actualización</label>
@@ -151,7 +162,7 @@
         </div>
         <div class="field" id="calc-fixed-wrap" style="display:none;">
           <label for="calc-fixed">Porcentaje anual fijo (%)</label>
-          <input type="number" id="calc-fixed" name="fixedPct" min="0" step="0.1" placeholder="Ej: 40">
+          <input type="text" inputmode="decimal" id="calc-fixed" name="fixedPct" placeholder="Ej: 40">
         </div>
         <div class="field">
           <label for="calc-frequency">Frecuencia de actualización</label>
@@ -249,7 +260,7 @@
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <div class="brand"><img src="img/ramirez-icon-identity.svg" alt="Ramirez Inmobiliaria" class="brand-mark-img"><span class="brand-text">Inmobiliaria Ramirez</span></div>
+        <div class="brand"><img src="img/ramirez-icon-transparent.png" alt="Ramirez Inmobiliaria" class="brand-mark-img"><span class="brand-text">Inmobiliaria Ramirez</span></div>
         <p>Compra, venta y alquiler de propiedades en La Quiaca y San Salvador de Jujuy. Atención cercana y de confianza.</p>
         <!-- Redes sociales: todavía no existen (pendiente que la clienta las cree). Descomentar y completar los href cuando estén listas. -->
         <!--
@@ -296,9 +307,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/supabase-config.js"></script>
+<script src="js/num-parse.js"></script>
 <script src="js/properties-data.js"></script>
 <script src="js/properties.js"></script>
 <script src="js/calculator.js"></script>
 <script src="js/main.js"></script>
+<script src="js/chatbot.js"></script>
 </body>
 </html>

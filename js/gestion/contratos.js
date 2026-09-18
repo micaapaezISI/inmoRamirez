@@ -110,20 +110,20 @@
         </div></fieldset>
         <fieldset><legend>Términos</legend><div class="rejilla">
           ${campo('tipo_contrato', 'Tipo', { tipo: 'select', opts: ['vivienda', 'comercial', 'cochera', 'temporal', 'otro'] })}
-          ${campo('fecha_inicio', 'Inicio', { tipo: 'date', requerido: true })}
-          ${campo('fecha_fin', 'Fin', { tipo: 'date', requerido: true })}
+          ${campo('fecha_inicio', 'Inicio', { tipo: 'date', requerido: true, ayuda: 'Tocá el calendario en vez de escribir la fecha a mano.' })}
+          ${campo('fecha_fin', 'Fin', { tipo: 'date', requerido: true, ayuda: 'Tocá el calendario en vez de escribir la fecha a mano.' })}
           ${campo('dia_vencimiento', 'Día de vencimiento', { tipo: 'number', min: 1, valor: 10 })}
           ${campo('monto_inicial', 'Monto mensual', { tipo: 'dinero', requerido: true })}
           ${campo('moneda', 'Moneda', { tipo: 'select', opts: ['ARS', 'USD'] })}
           ${campo('deposito', 'Depósito', { tipo: 'dinero' })}
-          ${campo('comision_admin_pct', 'Comisión admin. (%)', { tipo: 'number', step: '0.01', valor: config.numero('comision_admin_pct', 10) })}
+          ${campo('comision_admin_pct', 'Comisión admin. (%)', { tipo: 'porcentaje', valor: config.numero('comision_admin_pct', 10), ayuda: 'Si no cargás nada acá, se usa la comisión general de Configuración.' })}
         </div></fieldset>
         <fieldset><legend>Ajuste</legend><div class="rejilla">
           ${campo('ajuste_tipo', 'Tipo de ajuste', { tipo: 'select', opts: [['sin_ajuste', 'Sin ajuste'], ['porcentaje', 'Porcentaje fijo'], ['indice', 'Índice']] })}
           ${campo('ajuste_meses', 'Cada cuántos meses', { tipo: 'number', min: 1, valor: 6 })}
-          ${campo('ajuste_valor', 'Porcentaje (%)', { tipo: 'number', step: '0.01', ayuda: 'Solo si el ajuste es por porcentaje' })}
+          ${campo('ajuste_valor', 'Porcentaje (%)', { tipo: 'porcentaje', ayuda: 'Solo si el ajuste es por porcentaje. Ej: 40' })}
           ${campo('indice_codigo', 'Índice', { tipo: 'select', opts: [['', '—'], ...estado.indices.map((i) => [i.codigo, i.codigo])], ayuda: 'ICL / UVA / CER' })}
-          ${campo('indice_valor_base', 'Valor base del índice', { tipo: 'number', step: '0.0001', ayuda: 'El valor del índice a la fecha de inicio' })}
+          ${campo('indice_valor_base', 'Valor base del índice', { tipo: 'indice', ayuda: 'El valor del índice a la fecha de inicio' })}
         </div></fieldset>
         <fieldset><legend>Contrato ya en curso (opcional)</legend>
           <p class="campo__ayuda">Si el contrato se firmó hace tiempo y venís cobrando por fuera del sistema, cargá desde cuándo generar cuotas y a qué monto — así no genera cuotas viejas ya cobradas.</p>
@@ -315,7 +315,7 @@
         <div class="campo" data-campo="fecha_inicio"><label>Nuevo inicio</label><input type="date" id="rn-inicio" value="${G.sumarMeses(c.fecha_fin, 0)}"></div>
         <div class="campo" data-campo="fecha_fin"><label>Nuevo fin</label><input type="date" id="rn-fin"></div>
         <div class="campo" data-campo="monto_inicial"><label>Nuevo monto mensual</label><input type="text" inputmode="decimal" id="rn-monto" data-dinero="1"></div>
-        ${c.ajuste_tipo === 'indice' ? `<div class="campo" data-campo="indice_valor_base"><label>Nuevo valor base del índice ${esc(c.indice_codigo)}</label><input type="number" step="0.0001" id="rn-base"></div>` : ''}`,
+        ${c.ajuste_tipo === 'indice' ? `<div class="campo" data-campo="indice_valor_base"><label>Nuevo valor base del índice ${esc(c.indice_codigo)}</label><input type="text" inputmode="decimal" id="rn-base" data-indice="1" placeholder="Ej: 4.521,8734"></div>` : ''}`,
       textoConfirmar: 'Renovar',
       confirmar: async () => {
         const cambios = {
@@ -325,8 +325,8 @@
         };
         if (!cambios.fecha_fin || !cambios.monto_inicial) throw new Error('Cargá la fecha de fin y el monto nuevo.');
         if (c.ajuste_tipo === 'indice') {
-          cambios.indice_valor_base = Number(document.getElementById('rn-base').value);
-          if (!cambios.indice_valor_base) throw new Error('Cargá el nuevo valor base del índice.');
+          cambios.indice_valor_base = fmt.aIndice(document.getElementById('rn-base').value);
+          if (cambios.indice_valor_base === null) throw new Error('Cargá el nuevo valor base del índice (ej: 4.521,8734).');
         }
         const id = await datos.rpc('renovar_contrato', { p_origen_id: c.id, p_cambios: cambios, p_garantes: [] });
         avisar('Contrato renovado.');

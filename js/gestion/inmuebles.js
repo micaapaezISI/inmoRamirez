@@ -197,7 +197,7 @@
           ${campo('precio_venta', 'Precio venta', { tipo: 'dinero', valor: p.precio_venta })}
           ${campo('moneda_venta', 'Moneda', { tipo: 'select', opts: ['ARS', 'USD'], valor: p.moneda_venta || 'USD' })}
           ${campo('expensas', 'Expensas', { tipo: 'dinero', valor: p.expensas })}
-          ${campo('comision_admin_pct', 'Comisión admin. (%)', { tipo: 'number', step: '0.01', valor: p.comision_admin_pct ?? config.numero('comision_admin_pct', 10), ayuda: 'Para la liquidación al propietario' })}
+          ${campo('comision_admin_pct', 'Comisión admin. (%)', { tipo: 'porcentaje', valor: p.comision_admin_pct ?? config.numero('comision_admin_pct', 10), ayuda: 'Si no cargás nada acá, se usa la comisión general de Configuración.' })}
         </div></fieldset>
         <fieldset><legend>Publicación en el sitio</legend><div class="rejilla">
           ${campo('publicar_web', 'Mostrar en la web pública', { tipo: 'checkbox', valor: p.publicar_web })}
@@ -205,7 +205,7 @@
           ${campo('titulo_publico', 'Título público', { valor: p.titulo_publico, ancho: 4 })}
           ${campo('descripcion_publica', 'Descripción pública', { tipo: 'textarea', valor: p.descripcion_publica, ancho: 4 })}
         </div>
-        <p class="campo__ayuda">Por ahora la publicación en el sitio se sigue cargando desde el panel web. La unificación con este módulo está pendiente.</p>
+        <p class="campo__ayuda">Tildando "Mostrar en la web pública" este inmueble aparece solo en el sitio (pestaña "Propiedades"). Para que además salga entre las destacadas de Inicio, andá a la pestaña "Destacadas" del panel y tildalo ahí.</p>
         </fieldset>
       </div>
 
@@ -215,7 +215,7 @@
           <div class="propietarios" id="prop-lista"></div>
           <div class="importacion__busqueda-persona" style="margin-top:10px;">
             <select id="prop-persona"><option value="">Elegí una persona…</option></select>
-            <input type="number" id="prop-pct" placeholder="%" min="0" max="100" step="0.01" style="width:70px;">
+            <input type="text" inputmode="decimal" id="prop-pct" placeholder="%" style="width:70px;">
             <button type="button" class="boton" id="prop-agregar">Agregar</button>
           </div>
           <p class="propietario__suma" id="prop-suma"></p>
@@ -308,7 +308,9 @@
       listaPersonas.map((x) => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('');
     document.getElementById('prop-agregar').addEventListener('click', () => {
       const pid = Number(sel.value);
-      const pct = Number(document.getElementById('prop-pct').value) || 0;
+      const pctBruto = document.getElementById('prop-pct').value;
+      if (pctBruto.trim() !== '' && fmt.aPorcentaje(pctBruto) === null) return avisar('Ese porcentaje no es válido, escribilo así: 33,33', 'error');
+      const pct = fmt.aPorcentaje(pctBruto) ?? 0;
       if (!pid) return avisar('Elegí una persona.', 'error');
       if (borrador.propietarios.some((x) => x.persona_id === pid)) return avisar('Esa persona ya está.', 'error');
       borrador.propietarios.push({ persona_id: pid, porcentaje: pct, nombre: sel.selectedOptions[0].textContent });
@@ -323,11 +325,11 @@
     cont.innerHTML = borrador.propietarios.map((x, i) => `
       <div class="propietario">
         <span class="propietario__nombre">${esc(x.nombre)}</span>
-        <input type="number" value="${x.porcentaje}" min="0" max="100" step="0.01" data-pct="${i}">
+        <input type="text" inputmode="decimal" value="${fmt.porcentaje(x.porcentaje)}" data-pct="${i}">
         <button type="button" class="boton boton--peligro" data-quitar="${i}">Quitar</button>
       </div>`).join('') || '<p class="campo__ayuda">Todavía sin propietarios.</p>';
     cont.querySelectorAll('[data-pct]').forEach((el) => el.addEventListener('input', () => {
-      borrador.propietarios[Number(el.dataset.pct)].porcentaje = Number(el.value) || 0;
+      borrador.propietarios[Number(el.dataset.pct)].porcentaje = fmt.aPorcentaje(el.value) ?? 0;
       sumaPropietarios();
     }));
     cont.querySelectorAll('[data-quitar]').forEach((el) => el.addEventListener('click', () => {

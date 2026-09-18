@@ -2,49 +2,50 @@
    INMOBILIARIA RAMIREZ — Panel admin (conectado a Supabase)
    ---------------------------------------------------------------------
    - Login con email/password (Supabase Auth). Solo un usuario logueado
-     puede crear, editar o borrar propiedades (ver políticas RLS en
-     supabase/schema.sql). El usuario admin se crea a mano desde el
-     dashboard de Supabase (Authentication → Users → Add user).
-   - Las fotos se suben al bucket "property-photos" de Supabase Storage
-     y se guardan como URLs públicas en la columna "images".
-   - Pestañas: Nueva propiedad / Mis propiedades / Destacadas / Mensajes.
+     puede administrar el panel (ver políticas RLS en supabase/schema.sql
+     y supabase/inmogestion/02_rls.sql). El usuario admin se crea a mano
+     desde el dashboard de Supabase (Authentication → Users → Add user).
+   - Sidebar único: Hoy / Inmuebles / Destacadas / Personas / Alquileres /
+     Cobranzas / Liquidaciones / Caja / Mensajes / Configuración. Las 8
+     pestañas de gestión viven todas dentro de #tab-panel-gestion y se
+     enrutan con la lógica que antes vivía en js/gestion/app.js (ahora
+     integrada acá para que todo comparta una sola URL, sin redirigir a
+     gestion.html).
    ===================================================================== */
 
-const STORAGE_BUCKET = "property-photos";
-
 document.addEventListener("DOMContentLoaded", () => {
-  const pmRoot = document.querySelector("[data-pm-root]");
-  if (!pmRoot) return;
-
-  const photoManager = createPhotoManager(pmRoot);
-
   const loginWrap = document.getElementById("admin-login-wrap");
   const loginForm = document.getElementById("admin-login-form");
   const loginError = document.getElementById("admin-login-error");
+  const loginLockout = document.getElementById("admin-login-lockout");
+  const forgotLink = document.getElementById("admin-forgot-link");
+  const recoverForm = document.getElementById("admin-recover-form");
+  const recoverMsg = document.getElementById("admin-recover-msg");
+  const recoverCancel = document.getElementById("admin-recover-cancel");
+  const resetWrap = document.getElementById("admin-reset-wrap");
+  const resetForm = document.getElementById("admin-reset-form");
+  const resetError = document.getElementById("admin-reset-error");
   const panel = document.getElementById("admin-panel");
   const logoutBtn = document.getElementById("admin-logout");
 
-  const tabButtons = document.querySelectorAll(".admin-tab");
+  const tabButtons = document.querySelectorAll(".admin-sidebar-link");
   const tabPanels = document.querySelectorAll(".admin-tab-panel");
-
-  const form = document.getElementById("admin-property-form");
-  const resultBox = document.getElementById("admin-result");
-  const listBox = document.getElementById("admin-properties-list");
   const featuredBox = document.getElementById("admin-featured-list");
   const messagesBox = document.getElementById("admin-messages-list");
-  const submitBtn = document.getElementById("admin-submit-btn");
-  const cancelEditBtn = document.getElementById("admin-cancel-edit");
-  const formHeading = document.getElementById("admin-form-heading");
-  const formHelp = document.getElementById("admin-form-help");
 
-  let editingId = null;
+  const GESTION_TABS = new Set([
+    "inicio", "inmuebles", "personas", "alquileres",
+    "cobranzas", "liquidaciones", "caja", "configuracion",
+  ]);
 
   /* ---------------------------- Pestañas ---------------------------- */
   function switchTab(tabName) {
     tabButtons.forEach((btn) => btn.classList.toggle("is-active", btn.dataset.tab === tabName));
+    const targetPanelId = GESTION_TABS.has(tabName) ? "tab-panel-gestion" : `tab-panel-${tabName}`;
     tabPanels.forEach((panelEl) => {
-      panelEl.style.display = panelEl.id === `tab-panel-${tabName}` ? "block" : "none";
+      panelEl.style.display = panelEl.id === targetPanelId ? "block" : "none";
     });
+    if (GESTION_TABS.has(tabName)) gestionIrAModulo(tabName);
     window.scrollTo({ top: panel.offsetTop - 20, behavior: "smooth" });
   }
 
@@ -55,15 +56,27 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ------------------------------ Sesión ----------------------------- */
   function showLoggedIn() {
     loginWrap.style.display = "none";
+    resetWrap.style.display = "none";
     panel.style.display = "block";
-    loadPropertiesList();
     loadFeaturedList();
     loadMessages();
+    gestionIrAModulo("inicio");
   }
 
   function showLoggedOut() {
     loginWrap.style.display = "block";
+    resetWrap.style.display = "none";
     panel.style.display = "none";
+    loginForm.style.display = "block";
+    forgotLink.style.display = "inline-block";
+    recoverForm.style.display = "none";
+    recoverCancel.style.display = "none";
+  }
+
+  function showResetPassword() {
+    loginWrap.style.display = "none";
+    panel.style.display = "none";
+    resetWrap.style.display = "block";
   }
 
   supabaseClient.auth.getSession().then(({ data }) => {
@@ -71,140 +84,167 @@ document.addEventListener("DOMContentLoaded", () => {
     else showLoggedOut();
   });
 
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    // Supabase manda este evento cuando la persona entra desde el link del
+    // mail de "olvidé mi contraseña" — la sesión temporal solo sirve para
+    // elegir la contraseña nueva, no para entrar directo al panel.
+    if (event === "PASSWORD_RECOVERY") {
+      showResetPassword();
+      return;
+    }
     if (session) showLoggedIn();
     else showLoggedOut();
   });
+
+  /* --------------------- Límite de intentos de login ------------------- */
+  // Freno del lado del cliente (además de la protección real, que es RLS +
+  // auto-registro cerrado): 5 intentos fallidos seguidos bloquean el botón
+  // 5 minutos. Se guarda en localStorage para que sobreviva a un F5.
+  const LOGIN_LOCK_KEY = "admin_login_lock";
+  const LOGIN_MAX_ATTEMPTS = 5;
+  const LOGIN_LOCK_MINUTES = 5;
+  let lockoutInterval;
+
+  function leerEstadoBloqueo() {
+    try {
+      const st = JSON.parse(localStorage.getItem(LOGIN_LOCK_KEY));
+      if (st && typeof st.attempts === "number" && typeof st.lockedUntil === "number") return st;
+    } catch (_e) { /* localStorage no disponible o corrupto: seguir sin bloqueo */ }
+    return { attempts: 0, lockedUntil: 0 };
+  }
+  function guardarEstadoBloqueo(st) {
+    try { localStorage.setItem(LOGIN_LOCK_KEY, JSON.stringify(st)); } catch (_e) { /* nada que hacer */ }
+  }
+  function actualizarBloqueoUI() {
+    clearInterval(lockoutInterval);
+    const submitBtn = loginForm.querySelector("button[type=submit]");
+    const mostrarRestante = () => {
+      const ms = leerEstadoBloqueo().lockedUntil - Date.now();
+      if (ms <= 0) {
+        loginLockout.style.display = "none";
+        submitBtn.disabled = false;
+        clearInterval(lockoutInterval);
+        return;
+      }
+      const min = Math.floor(ms / 60000);
+      const seg = Math.ceil((ms % 60000) / 1000);
+      loginLockout.textContent = `Demasiados intentos fallidos. Probá de nuevo en ${min > 0 ? `${min} min ` : ""}${seg}s.`;
+      loginLockout.style.display = "block";
+      submitBtn.disabled = true;
+    };
+    mostrarRestante();
+    if (leerEstadoBloqueo().lockedUntil > Date.now()) {
+      lockoutInterval = setInterval(mostrarRestante, 1000);
+    }
+  }
+  function registrarIntentoFallido() {
+    const st = leerEstadoBloqueo();
+    const attempts = st.attempts + 1;
+    if (attempts >= LOGIN_MAX_ATTEMPTS) {
+      guardarEstadoBloqueo({ attempts: 0, lockedUntil: Date.now() + LOGIN_LOCK_MINUTES * 60000 });
+    } else {
+      guardarEstadoBloqueo({ attempts, lockedUntil: st.lockedUntil });
+    }
+    actualizarBloqueoUI();
+  }
+  function limpiarBloqueo() {
+    guardarEstadoBloqueo({ attempts: 0, lockedUntil: 0 });
+    actualizarBloqueoUI();
+  }
+  actualizarBloqueoUI(); // restaura el bloqueo si se recargó la página a mitad de la espera
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     loginError.style.display = "none";
     const data = new FormData(loginForm);
+
+    // Trampa para bots: una persona nunca completa este campo (está oculto
+    // con CSS). Si viene con algo, se descarta en silencio.
+    if (data.get("website")) return;
+
+    if (leerEstadoBloqueo().lockedUntil > Date.now()) {
+      actualizarBloqueoUI();
+      return;
+    }
+
     const { error } = await supabaseClient.auth.signInWithPassword({
       email: data.get("email"),
       password: data.get("password"),
     });
     if (error) {
+      registrarIntentoFallido();
       loginError.textContent = "No se pudo ingresar: " + error.message;
       loginError.style.display = "block";
     } else {
+      limpiarBloqueo();
       loginForm.reset();
     }
+  });
+
+  /* ------------------------ Olvidé mi contraseña ------------------------ */
+  forgotLink.addEventListener("click", () => {
+    loginForm.style.display = "none";
+    forgotLink.style.display = "none";
+    loginError.style.display = "none";
+    recoverMsg.style.display = "none";
+    recoverForm.style.display = "block";
+    recoverCancel.style.display = "inline-block";
+  });
+  recoverCancel.addEventListener("click", () => {
+    recoverForm.style.display = "none";
+    recoverCancel.style.display = "none";
+    loginForm.style.display = "block";
+    forgotLink.style.display = "inline-block";
+  });
+  recoverForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = new FormData(recoverForm);
+    const submitBtn = recoverForm.querySelector("button[type=submit]");
+    submitBtn.disabled = true;
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(data.get("email"), {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+    if (error) console.error("resetPasswordForEmail:", error);
+
+    submitBtn.disabled = false;
+    // Mismo mensaje haya o no error: no revelar si ese mail tiene cuenta o no.
+    recoverMsg.textContent = "Si ese email tiene una cuenta, te llega un link para elegir una contraseña nueva.";
+    recoverMsg.style.display = "block";
+    recoverForm.reset();
+  });
+
+  resetForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resetError.style.display = "none";
+    const data = new FormData(resetForm);
+    const password = data.get("password");
+    const passwordConfirm = data.get("passwordConfirm");
+
+    if (password !== passwordConfirm) {
+      resetError.textContent = "Las dos contraseñas no coinciden.";
+      resetError.style.display = "block";
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.updateUser({ password });
+    if (error) {
+      resetError.textContent = "No se pudo guardar la contraseña: " + error.message;
+      resetError.style.display = "block";
+      return;
+    }
+
+    resetForm.reset();
+    showLoggedIn();
   });
 
   logoutBtn.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
   });
 
-  /* --------------------------- Editar / crear ------------------------ */
-  function startEdit(property) {
-    editingId = property.id;
-    form.elements.title.value = property.title || "";
-    form.elements.operation.value = property.operation || "venta";
-    form.elements.type.value = property.type || "casa";
-    form.elements.bedrooms.value = property.bedrooms || 0;
-    form.elements.bathrooms.value = property.bathrooms || 0;
-    form.elements.area.value = property.area || "";
-    form.elements.zone.value = property.zone || "Centro";
-    form.elements.address.value = property.address || "";
-    form.elements.currency.value = property.currency || "USD";
-    form.elements.price.value = property.price || "";
-    form.elements.description.value = property.description || "";
-    form.elements.amenities.value = (property.amenities || []).join(", ");
-
-    photoManager.setImages((property.images || []).map((url) => ({ url, name: url.split("/").pop() })));
-
-    formHeading.textContent = `✏️ Editando: ${property.title}`;
-    formHelp.textContent = "Cambiá lo que haga falta y tocá \"Actualizar propiedad\" para guardar.";
-    submitBtn.textContent = "Actualizar propiedad";
-    cancelEditBtn.style.display = "inline-block";
-    resultBox.style.display = "none";
-    switchTab("nueva");
-  }
-
-  function stopEdit() {
-    editingId = null;
-    form.reset();
-    photoManager.reset();
-    formHeading.textContent = "🏠 Nueva propiedad";
-    formHelp.textContent = "Completá estos datos para publicar un aviso nuevo. Los campos con * son obligatorios, el resto podés dejarlos en blanco si no aplican.";
-    submitBtn.textContent = "Guardar propiedad";
-    cancelEditBtn.style.display = "none";
-  }
-
-  cancelEditBtn.addEventListener("click", stopEdit);
-
-  /* --------------------------- Mis propiedades ------------------------ */
-  async function loadPropertiesList() {
-    listBox.innerHTML = `<p style="color:var(--color-text-light);">Cargando…</p>`;
-    const { data, error } = await supabaseClient.from("properties").select("*").order("created_at", { ascending: false });
-    if (error) {
-      listBox.innerHTML = `<p style="color:var(--color-danger);">No se pudo cargar la lista: ${error.message}</p>`;
-      return;
-    }
-    if (!data || data.length === 0) {
-      listBox.innerHTML = `<p style="color:var(--color-text-light);">Todavía no hay propiedades cargadas. Andá a la pestaña "Nueva propiedad" para cargar la primera.</p>`;
-      return;
-    }
-    listBox.innerHTML = data
-      .map(
-        (p) => `
-      <div class="admin-list-row">
-        <div class="admin-list-thumb">
-          ${p.images && p.images[0] ? `<img src="${p.images[0]}" alt="">` : ""}
-        </div>
-        <div class="admin-list-info">
-          <span class="admin-list-title">${p.title}</span>
-          ${p.active === false ? `<span class="admin-status-badge">Inactiva</span>` : ""}
-          <span class="admin-list-meta" style="display:block;">${operationLabel(p.operation)} · ${typeLabel(p.type)} · ${p.currency} ${p.price.toLocaleString("es-AR")}</span>
-        </div>
-        <div class="admin-list-actions">
-          <button type="button" class="btn btn-sm btn-dark" data-edit-id="${p.id}">Editar</button>
-          <button type="button" class="btn btn-sm ${p.active === false ? "btn-primary" : ""}" data-toggle-active-id="${p.id}" data-current-active="${p.active !== false}">${p.active === false ? "Activar" : "Desactivar"}</button>
-          <button type="button" class="admin-delete-link" data-delete-id="${p.id}">Eliminar definitivamente</button>
-        </div>
-      </div>`
-      )
-      .join("");
-
-    listBox.querySelectorAll("[data-edit-id]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const property = data.find((p) => p.id === parseInt(btn.dataset.editId, 10));
-        if (property) startEdit(property);
-      });
-    });
-
-    listBox.querySelectorAll("[data-toggle-active-id]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const id = parseInt(btn.dataset.toggleActiveId, 10);
-        const nextActive = btn.dataset.currentActive !== "true";
-        btn.disabled = true;
-        const { error: toggleError } = await supabaseClient.from("properties").update({ active: nextActive }).eq("id", id);
-        btn.disabled = false;
-        if (toggleError) {
-          alert("No se pudo guardar: " + toggleError.message);
-          return;
-        }
-        loadPropertiesList();
-        loadFeaturedList();
-      });
-    });
-
-    listBox.querySelectorAll("[data-delete-id]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const id = parseInt(btn.dataset.deleteId, 10);
-        if (!confirm("Esto borra la propiedad y sus datos para siempre, no se puede deshacer.\n\n¿Seguro? Si es un alquiler que puede volver a ocuparse, mejor usá \"Desactivar\".")) return;
-        const { error: deleteError } = await supabaseClient.from("properties").delete().eq("id", id);
-        if (deleteError) {
-          alert("No se pudo eliminar: " + deleteError.message);
-          return;
-        }
-        if (editingId === id) stopEdit();
-        loadPropertiesList();
-        loadFeaturedList();
-      });
-    });
-  }
+  document.getElementById("admin-ver-guia")?.addEventListener("click", () => {
+    window.Gestion?.mostrarGuiaPrimerosPasos?.();
+  });
 
   /* ------------------------------ Destacadas -------------------------- */
   async function loadFeaturedList() {
@@ -219,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!data || data.length === 0) {
-      featuredBox.innerHTML = `<p style="color:var(--color-text-light);">No hay propiedades activas para destacar. Activá alguna desde "Mis propiedades".</p>`;
+      featuredBox.innerHTML = `<p style="color:var(--color-text-light);">No hay propiedades activas para destacar. Cargalas desde "Inmuebles".</p>`;
       return;
     }
     featuredBox.innerHTML = data
@@ -287,91 +327,81 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
-  /* -------------------------- Subida de fotos -------------------------- */
-  async function uploadNewImages(images) {
-    const folder = `uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const urls = [];
-    for (const img of images) {
-      if (!img.url.startsWith("blob:")) {
-        urls.push(img.url);
-        continue;
-      }
-      const blob = await fetch(img.url).then((r) => r.blob());
-      const ext = (img.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-      const path = `${folder}/${urls.length + 1}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(path, blob, {
-        contentType: blob.type || "image/jpeg",
-      });
-      if (error) throw error;
-      const { data } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-      urls.push(data.publicUrl);
+  /* ============ Gestión (InmoGestion) — enrutamiento interno =========== */
+  /* Mismo mecanismo que tenía js/gestion/app.js (irAModulo/refrescar/F2-F5-
+     Esc), adaptado para vivir acá en vez de en gestion.html: el login ya
+     lo resuelve este mismo panel, así que no hace falta un #acceso propio. */
+
+  let gestionModuloActual = null;
+  const gestionCargados = new Set();
+
+  function gestionIrAModulo(nombre) {
+    const G = window.Gestion;
+    if (!G) return;
+    if (!G.modulos[nombre]) nombre = "inicio";
+    if (nombre === gestionModuloActual) return;
+    gestionModuloActual = nombre;
+
+    document.querySelectorAll("#vistas .vista").forEach((v) => {
+      v.style.display = v.id === "vista-" + nombre ? "" : "none";
+    });
+
+    const m = G.modulos[nombre];
+    document.getElementById("titulo-modulo").textContent = m.titulo;
+    document.getElementById("barra-contador").textContent = "";
+    const btnNuevo = document.getElementById("btn-nuevo");
+    if (m.nuevo && m.textoNuevo) {
+      btnNuevo.style.display = "";
+      btnNuevo.textContent = m.textoNuevo;
+    } else {
+      btnNuevo.style.display = "none";
     }
-    return urls;
+
+    if (!gestionCargados.has(nombre)) {
+      gestionCargados.add(nombre);
+      Promise.resolve(m.cargar()).catch((e) => G.avisar(G.mensajeError(e), "error"));
+    }
   }
 
-  /* ------------------------------ Guardar ------------------------------ */
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  function gestionRefrescar() {
+    const G = window.Gestion;
+    if (!G || !gestionModuloActual) return;
+    Promise.resolve(G.modulos[gestionModuloActual].cargar()).catch((e) => G.avisar(G.mensajeError(e), "error"));
+  }
 
-    const data = new FormData(form);
-    const title = (data.get("title") || "").trim();
-    const currency = data.get("currency") === "ARS" ? "ARS" : "USD";
-    const price = parseFloat(data.get("price")) || 0;
-    const amenities = (data.get("amenities") || "")
-      .split(",")
-      .map((a) => a.trim())
-      .filter(Boolean);
+  // Para que un módulo pueda saltar a otro (ej. desde "Hoy", o al crear un
+  // contrato desde Inmuebles) o forzar su recarga la próxima vez que se abra.
+  function exponerGestion() {
+    if (!window.Gestion) return;
+    window.Gestion.irAModulo = (nombre) => {
+      if (GESTION_TABS.has(nombre)) switchTab(nombre);
+    };
+    window.Gestion.invalidar = (nombre) => gestionCargados.delete(nombre);
+    window.Gestion.refrescar = gestionRefrescar;
+  }
+  exponerGestion();
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = editingId ? "Actualizando…" : "Guardando…";
+  document.getElementById("btn-refrescar")?.addEventListener("click", gestionRefrescar);
+  document.getElementById("btn-nuevo")?.addEventListener("click", () => {
+    const G = window.Gestion;
+    const m = G && G.modulos[gestionModuloActual];
+    if (m && m.nuevo) m.nuevo();
+  });
 
-    try {
-      const images = await uploadNewImages(photoManager.getImages());
-
-      const payload = {
-        title,
-        operation: data.get("operation"),
-        type: data.get("type"),
-        zone: data.get("zone"),
-        address: (data.get("address") || "").trim(),
-        currency,
-        price,
-        bedrooms: parseInt(data.get("bedrooms"), 10) || 0,
-        bathrooms: parseInt(data.get("bathrooms"), 10) || 0,
-        area: parseFloat(data.get("area")) || 0,
-        description: (data.get("description") || "").trim(),
-        amenities,
-        images,
-      };
-
-      const { error } = editingId
-        ? await supabaseClient.from("properties").update(payload).eq("id", editingId)
-        : await supabaseClient.from("properties").insert(payload);
-
-      if (error) throw error;
-
-      const wasEditing = !!editingId;
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `
-        <div class="admin-card" style="border-color: var(--color-secondary); background: var(--color-bg-alt);">
-          <h2>✅ Propiedad ${wasEditing ? "actualizada" : "publicada"}</h2>
-          <p><strong>${title}</strong> ya está guardada y visible en el sitio.</p>
-        </div>`;
-      resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
-
-      stopEdit();
-      loadPropertiesList();
-      loadFeaturedList();
-    } catch (err) {
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `
-        <div class="admin-card" style="border-color: var(--color-danger);">
-          <h2>❌ No se pudo guardar</h2>
-          <p>${err.message || err}</p>
-        </div>`;
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = editingId ? "Actualizar propiedad" : "Guardar propiedad";
+  document.addEventListener("keydown", (e) => {
+    const G = window.Gestion;
+    if (!G) return;
+    if (e.key === "Escape") {
+      if (document.getElementById("dialogo")?.dataset.abierto === "1") G.dialogo.cerrar();
+      else if (G.ficha.abierta()) G.ficha.cerrar();
+      return;
     }
+    if (e.target.matches("input, select, textarea")) return;
+    if (e.key === "F2") {
+      e.preventDefault();
+      const m = G.modulos[gestionModuloActual];
+      if (m && m.nuevo) m.nuevo();
+    }
+    if (e.key === "F5" && gestionModuloActual) { e.preventDefault(); gestionRefrescar(); }
   });
 });

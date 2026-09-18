@@ -1,0 +1,3 @@
+# Caché local del Supabase CLI (project-ref, versiones, URLs de conexión) —
+# se regenera solo con `supabase link`, no es código del proyecto.
+supabase/.temp/

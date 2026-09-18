@@ -1,0 +1,6 @@
+project_id = "cjgezgkbkchqrlueieau"
+
+# El asistente virtual lo llama gente anónima desde el sitio público
+# (sin login), así que no pide un JWT de usuario.
+[functions.chatbot]
+verify_jwt = false
