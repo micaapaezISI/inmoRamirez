@@ -14,17 +14,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const slides = bg.querySelectorAll(".hero-bg-slide");
   if (slides.length < 2) return;
 
+  // Patrón pedido por la clienta: un cartel de bienvenida, una foto de
+  // paisaje, cartel, paisaje... (las 3 fotos de carteles son propias,
+  // sacadas por ella misma — no llevan crédito de Wikimedia).
   const IMAGES = [
-    "img/hero/humahuaca-cabildo.jpg",
-    "img/hero/quebrada-paleta-pintor.jpg",
-    "img/hero/la-quiaca-mercado.jpg",
+    "img/hero/cartel-la-quiaca.png",
     "img/hero/quebrada-hornocal.jpg",
-    "img/hero/tilcara-adobe.jpg",
+    "img/hero/cartel-humahuaca.png",
     "img/hero/puna-siete-colores.jpg",
-    "img/hero/humahuaca-capilla.jpg",
+    "img/hero/cartel-tilcara.png",
+    "img/hero/quebrada-paleta-pintor.jpg",
+    "img/hero/humahuaca-cabildo.jpg",
     "img/hero/quebrada-cerro.jpg",
+    "img/hero/la-quiaca-mercado.jpg",
     "img/hero/quebrada-pucara-tilcara.jpg",
+    "img/hero/humahuaca-capilla.jpg",
     "img/hero/humahuaca-amanecer.jpg",
+    "img/hero/tilcara-adobe.jpg",
     "img/hero/puna-atardecer-abrapampa.jpg",
   ];
 
