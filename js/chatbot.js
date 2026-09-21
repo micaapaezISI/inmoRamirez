@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
       label: "¿Cómo actualizo un alquiler?",
       keywords: ["alquiler", "actualiza", "icl", "ipc", "renov", "aumento"],
       answer:
-        'Usá nuestra <a href="propiedades.html#calculadora">calculadora de actualización de alquileres</a>, que trabaja con los índices oficiales (ICL e IPC) del BCRA.',
+        'Usá nuestra <a href="calculadora.html">calculadora de actualización de alquileres</a>, que trabaja con los índices oficiales (ICL, IPC, CER, UVA y UVI) del BCRA.',
     },
     {
       id: "turismo",

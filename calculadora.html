@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Propiedades en La Quiaca y San Salvador de Jujuy — Inmobiliaria Ramirez</title>
-<meta name="description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario en La Quiaca y San Salvador de Jujuy.">
+<title>Calculadora de actualización de alquileres — Inmobiliaria Ramirez</title>
+<meta name="description" content="Calculá el nuevo valor de tu alquiler por ICL, IPC, CER, UVA, UVI o porcentaje fijo, con datos reales y en vivo de la API del BCRA.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Inmobiliaria Ramirez">
 <meta property="og:locale" content="es_AR">
-<meta property="og:title" content="Propiedades en La Quiaca y San Salvador de Jujuy — Inmobiliaria Ramirez">
-<meta property="og:description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario en La Quiaca y San Salvador de Jujuy.">
+<meta property="og:title" content="Calculadora de actualización de alquileres — Inmobiliaria Ramirez">
+<meta property="og:description" content="Calculá el nuevo valor de tu alquiler por ICL, IPC, CER, UVA, UVI o porcentaje fijo, con datos reales y en vivo de la API del BCRA.">
 <meta property="og:image" content="https://www.inmobiliariaramirez.com.ar/img/hero/quebrada-paleta-pintor.jpg">
-<meta property="og:url" content="https://www.inmobiliariaramirez.com.ar/propiedades.html">
+<meta property="og:url" content="https://www.inmobiliariaramirez.com.ar/calculadora.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Propiedades en La Quiaca y San Salvador de Jujuy">
-<meta name="twitter:description" content="Casas, departamentos, terrenos y fincas en venta, alquiler y alquiler temporario.">
+<meta name="twitter:title" content="Calculadora de actualización de alquileres">
+<meta name="twitter:description" content="ICL, IPC, CER, UVA, UVI o porcentaje fijo, con datos reales del BCRA.">
 <meta name="twitter:image" content="https://www.inmobiliariaramirez.com.ar/img/hero/quebrada-paleta-pintor.jpg">
 <link rel="icon" type="image/png" href="img/ramirez-icon-transparent.png">
 <link rel="stylesheet" href="css/style.css">
@@ -48,140 +48,116 @@
 <!-- ===================== PAGE HERO ===================== -->
 <section class="page-hero">
   <div class="container">
-    <span class="eyebrow">Catálogo</span>
-    <h1>Propiedades en La Quiaca y San Salvador de Jujuy</h1>
-    <p>Filtrá por operación, tipo, zona y dormitorios para encontrar la propiedad que buscás.</p>
-    <div class="breadcrumb"><a href="index.html">Inicio</a> / Propiedades</div>
+    <span class="eyebrow">Herramienta gratuita</span>
+    <h1>Calculadora de actualización de alquileres</h1>
+    <p>Cargá el monto, la fecha de inicio del contrato, la frecuencia y el índice pactado, y mirá cómo evolucionó (y evoluciona) el alquiler, período por período, con datos reales del BCRA.</p>
+    <div class="breadcrumb"><a href="index.html">Inicio</a> / Calculadora</div>
   </div>
 </section>
 
-<!-- ===================== LISTADO + FILTROS ===================== -->
+<!-- ===================== CALCULADORA ===================== -->
 <section class="section">
   <div class="container">
-    <form class="filters-bar" id="filters-form">
-      <div class="filters-grid">
+    <div class="calc-wrap">
+      <form class="calc-form" id="calc-form">
         <div class="field">
-          <label for="f-operation">Operación</label>
-          <select id="f-operation" name="operation">
-            <option value="todas">Todas</option>
-            <option value="venta">Venta</option>
-            <option value="alquiler">Alquiler</option>
-            <option value="temporal">Alquiler temporario</option>
-          </select>
+          <label for="calc-amount">Monto inicial del alquiler (ARS)</label>
+          <input type="text" inputmode="decimal" id="calc-amount" name="amount" placeholder="Ej: 150.000" required>
         </div>
-        <div class="field">
-          <label for="f-type">Tipo</label>
-          <select id="f-type" name="type">
-            <option value="todos">Todos</option>
-            <option value="casa">Casa</option>
-            <option value="departamento">Departamento</option>
-            <option value="terreno">Terreno</option>
-            <option value="local">Local comercial</option>
-            <option value="finca">Finca</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-zone">Zona</label>
-          <select id="f-zone" name="zone">
-            <option value="todas">Todas</option>
-            <option value="Centro">Centro</option>
-            <option value="Barrio Cruce">Barrio Cruce</option>
-            <option value="Barrio Belgrano">Barrio Belgrano</option>
-            <option value="Barrio Ferroviario">Barrio Ferroviario</option>
-            <option value="Zona Puna / Yavi">Zona Puna / Yavi</option>
-            <option value="Zona rural / Puna">Zona rural / Puna</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-bedrooms">Dormitorios</label>
-          <select id="f-bedrooms" name="bedrooms">
-            <option value="todos">Todos</option>
-            <option value="1">1+</option>
-            <option value="2">2+</option>
-            <option value="3">3+</option>
-            <option value="4">4+</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-currency">Moneda</label>
-          <select id="f-currency" name="currency">
-            <option value="todas">Todas</option>
-            <option value="USD">USD</option>
-            <option value="ARS">ARS ($)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="f-price-min">Precio mínimo</label>
-          <input type="text" inputmode="decimal" id="f-price-min" name="priceMin" placeholder="Sin mínimo">
-        </div>
-        <div class="field">
-          <label for="f-price-max">Precio máximo</label>
-          <input type="text" inputmode="decimal" id="f-price-max" name="priceMax" placeholder="Sin máximo">
-        </div>
-      </div>
-      <div class="filters-actions">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
-        <button type="button" id="filters-reset" class="btn btn-dark">Limpiar filtros</button>
-        <span style="font-size:0.78rem; color:var(--color-text-light);">Tip: elegí la moneda para que el precio mínimo/máximo compare correctamente.</span>
-      </div>
-    </form>
 
-    <div class="results-bar">
-      <span><strong id="results-count">0</strong> propiedades encontradas</span>
-    </div>
+        <div class="field">
+          <label for="calc-start">Fecha de inicio del contrato</label>
+          <input type="month" id="calc-start" name="start" required>
+        </div>
 
-    <div class="property-grid" id="results-grid"></div>
+        <div class="field">
+          <label>Cada cuánto se actualiza (meses)</label>
+          <div class="calc-choice-grid calc-choice-grid--freq" id="calc-freq-grid">
+            <button type="button" class="calc-choice-btn" data-value="1">1</button>
+            <button type="button" class="calc-choice-btn" data-value="2">2</button>
+            <button type="button" class="calc-choice-btn" data-value="3">3</button>
+            <button type="button" class="calc-choice-btn" data-value="4">4</button>
+            <button type="button" class="calc-choice-btn" data-value="5">5</button>
+            <button type="button" class="calc-choice-btn" data-value="6">6</button>
+            <button type="button" class="calc-choice-btn" data-value="7">7</button>
+            <button type="button" class="calc-choice-btn" data-value="8">8</button>
+            <button type="button" class="calc-choice-btn" data-value="9">9</button>
+            <button type="button" class="calc-choice-btn" data-value="10">10</button>
+            <button type="button" class="calc-choice-btn" data-value="11">11</button>
+            <button type="button" class="calc-choice-btn" data-value="12">12</button>
+          </div>
+          <input type="hidden" id="calc-frequency" name="frequency" value="12">
+        </div>
 
-    <div class="empty-state" id="empty-state" style="display:none;">
-      <h3>No encontramos propiedades con esos filtros</h3>
-      <p>Probá modificar la búsqueda o escribinos y te ayudamos a encontrar algo a medida.</p>
-    </div>
-  </div>
-</section>
+        <div class="field">
+          <label>Índice de actualización</label>
+          <div class="calc-choice-grid" id="calc-index-grid">
+            <button type="button" class="calc-choice-btn" data-value="icl">ICL</button>
+            <button type="button" class="calc-choice-btn" data-value="ipc">IPC</button>
+            <button type="button" class="calc-choice-btn" data-value="cer">CER</button>
+            <button type="button" class="calc-choice-btn" data-value="uva">UVA</button>
+            <button type="button" class="calc-choice-btn" data-value="uvi">UVI</button>
+            <button type="button" class="calc-choice-btn" data-value="fijo">% fijo</button>
+          </div>
+          <input type="hidden" id="calc-index" name="index" value="icl">
+        </div>
 
-<!-- ===================== BENEFICIOS DE INVERTIR EN LA QUIACA ===================== -->
-<section class="section">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Ubicación estratégica</span>
-      <h2>Invertir en una ciudad de frontera</h2>
-      <p>La Quiaca linda con Villazón (Bolivia) a través del Puente Internacional Horacio Guzmán. Esto es lo que esa ubicación significa para quien tiene una propiedad o un local acá.</p>
-    </div>
-    <div class="values-grid">
-      <div class="value-card">
-        <div class="value-ico">🔄</div>
-        <h3>Movimiento comercial constante</h3>
-        <p>Buena parte de las ventas del comercio local están atadas al intercambio diario con Bolivia: compradores que cruzan de un lado a otro según conviene el tipo de cambio. Esa dinámica sostiene la demanda de locales, depósitos y viviendas cerca del cruce.</p>
-      </div>
-      <div class="value-card">
-        <div class="value-ico">👥</div>
-        <h3>Un cruce de más de 60.000 personas</h3>
-        <p>Entre La Quiaca y Villazón, del otro lado del puente, viven más de 60.000 personas que cruzan la frontera por trabajo, comercio o familia — un movimiento de gente que no depende de la temporada turística.</p>
-      </div>
-      <div class="value-card">
-        <div class="value-ico">🚧</div>
-        <h3>Infraestructura fronteriza en expansión</h3>
-        <p>En 2026 se inauguró la modernización del Puente Internacional Horacio Guzmán, con nuevo escáner de cargas, cámaras y box de aduana y migraciones — inversión pública real que sigue llegando al cruce.</p>
-      </div>
-      <div class="value-card">
-        <div class="value-ico">🏛️</div>
-        <h3>Zona franca en trámite</h3>
-        <p>El gobierno de Jujuy avanzó con la licitación de una zona franca para La Quiaca (Decreto 5066-DEyP/2026), todavía en trámite. Si se concreta, sumaría un beneficio fiscal adicional al comercio de la zona.</p>
+        <div class="field" id="calc-fixed-wrap" style="display:none;">
+          <label for="calc-fixed">Porcentaje anual fijo (%)</label>
+          <input type="text" inputmode="decimal" id="calc-fixed" name="fixedPct" placeholder="Ej: 40">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Calcular</button>
+      </form>
+
+      <div class="calc-result">
+        <h3>Resultado</h3>
+        <p class="calc-note">Cargá los datos del contrato para ver la actualización, período por período.</p>
+
+        <div id="calc-result-empty" style="color:rgba(245,247,250,0.6); font-size:0.9rem;">
+          Todavía no calculaste ningún valor.
+        </div>
+
+        <div id="calc-result-filled" style="display:none;">
+          <table class="calc-period-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th>Fecha</th>
+                <th>Índice</th>
+                <th>Aumento</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody id="calc-period-tbody"></tbody>
+          </table>
+
+          <p id="calc-approx-note" class="calc-approx-note"></p>
+          <p id="calc-out-source" style="color:rgba(245,247,250,0.65); font-size:0.78rem; margin-top:14px;"></p>
+
+          <div id="calc-share-row" class="calc-share-row">
+            <input type="text" id="calc-share-url" readonly aria-label="Link para compartir esta calculadora">
+            <button type="button" id="calc-share-copy">Copiar link</button>
+          </div>
+        </div>
+
+        <p id="calc-result-error" style="display:none; color:#ffd9d0; font-size:0.9rem; font-weight:600;"></p>
+
+        <p class="calc-disclaimer">
+          ICL, IPC, CER, UVA y UVI se consultan en vivo desde la API pública del BCRA. Cuando un período todavía no tiene valor publicado, se muestra un estimado marcado "Aproximado". Esta herramienta tiene fines orientativos y no constituye asesoramiento legal — para el valor exacto de tu contrato, consultanos.
+        </p>
       </div>
     </div>
-    <p style="color:var(--color-text-light); font-size:0.78rem; margin-top:20px;">
-      Información de carácter general, no constituye asesoramiento legal, impositivo ni de inversión. Para una evaluación puntual de tu caso, consultá con un profesional.
-    </p>
   </div>
 </section>
 
 <!-- ===================== CTA CONTACTO ===================== -->
-<section class="section">
+<section class="section section-alt">
   <div class="container">
     <div class="cta-band cta-band--rose">
       <div>
-        <h3>¿No encontrás lo que buscás?</h3>
-        <p>Contanos qué necesitás y te avisamos apenas tengamos una propiedad que coincida.</p>
+        <h3>¿Necesitás ayuda con tu contrato de alquiler?</h3>
+        <p>Te asesoramos con la actualización real y con lo que corresponda firmar.</p>
       </div>
       <div class="cta-band-actions">
         <a href="contacto.html" class="btn btn-primary">Dejar mi consulta</a>
@@ -241,11 +217,8 @@
 
 <a class="whatsapp-float" href="https://wa.me/5493885875116" target="_blank" rel="noopener" aria-label="Chatear por WhatsApp"><svg class="ico-wsp" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.82L2 22l5.42-1.42a9.87 9.87 0 0 0 4.62 1.17h.01c5.46 0 9.9-4.45 9.9-9.9C21.96 6.45 17.5 2 12.04 2Zm5.86 14.02c-.25.7-1.24 1.28-1.99 1.44-.53.11-1.22.2-3.55-.76-2.98-1.23-4.9-4.24-5.05-4.44-.15-.2-1.21-1.6-1.21-3.06 0-1.46.76-2.17 1.03-2.47.27-.3.6-.37.8-.37.2 0 .4 0 .58.01.19.01.44-.07.68.53.25.61.85 2.1.92 2.25.07.15.12.32.02.52-.1.2-.15.32-.3.49-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.3.75 1.24 1.62 2 1.11.99 2.05 1.3 2.35 1.44.3.15.48.13.65-.08.18-.2.75-.87.95-1.17.2-.3.4-.25.68-.15.28.1 1.76.83 2.06.98.3.15.5.22.57.35.08.13.08.75-.17 1.45Z"/></svg></a>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-config.js"></script>
 <script src="js/num-parse.js"></script>
-<script src="js/properties-data.js"></script>
-<script src="js/properties.js"></script>
+<script src="js/calculator.js"></script>
 <script src="js/main.js"></script>
 <script src="js/chatbot.js"></script>
 </body>
