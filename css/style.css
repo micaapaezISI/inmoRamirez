@@ -420,7 +420,7 @@ h1, h2, h3, h4 {
   inset: 0;
   z-index: 2;
   background-image:
-    linear-gradient(90deg, rgba(20, 14, 10, 0.72) 0%, rgba(20, 14, 10, 0.34) 38%, rgba(20, 14, 10, 0.08) 58%, rgba(20, 14, 10, 0) 78%),
+    linear-gradient(90deg, rgba(20, 14, 10, 0.82) 0%, rgba(20, 14, 10, 0.48) 38%, rgba(20, 14, 10, 0.22) 58%, rgba(20, 14, 10, 0.06) 78%),
     radial-gradient(circle at 88% 12%, rgba(255, 224, 160, 0.12), transparent 44%),
     radial-gradient(circle at 92% 88%, rgba(90, 40, 24, 0.22), transparent 46%);
   pointer-events: none;
