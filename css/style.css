@@ -1120,8 +1120,14 @@ h1, h2, h3, h4 {
 }
 
 /* ===== Calculadora: tabla de períodos ===== */
+.calc-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .calc-period-table {
   width: 100%;
+  min-width: 460px;
   border-collapse: collapse;
   margin-top: 6px;
   font-size: 0.86rem;
